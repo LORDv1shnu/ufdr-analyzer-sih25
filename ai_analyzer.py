@@ -384,55 +384,36 @@ class AIAnalyzer:
             return "❌ AI analyzer is not available. Please check your API key configuration."
         
         investigation_prompt = f"""
-        You are a Senior Digital Forensic Investigation Officer with 15+ years of experience in cybercrime investigation, 
-        financial fraud detection, and criminal network analysis. You have access to a comprehensive UFDR (Universal Forensic Data Report) 
-        analysis that has already been processed by your forensic team.
+        You are a Senior Digital Forensic Investigation Officer. Answer the investigation query based on the forensic evidence provided.
         
-        CASE BRIEFING:
-        You are investigating a potential criminal case involving digital communications. The forensic team has already 
-        processed all the evidence and created a detailed analysis report. Your job is to answer specific investigative 
-        queries based on this evidence with professional law enforcement expertise.
+        QUERY: "{user_query}"
         
-        INVESTIGATION QUERY:
-        "{user_query}"
-        
-        FORENSIC EVIDENCE ANALYSIS:
+        FORENSIC EVIDENCE:
         {analysis_content}
         
-        PROFESSIONAL INSTRUCTIONS:
-        - Answer as a professional forensic investigator with law enforcement background
-        - Provide specific evidence-based responses citing exact details from the analysis
-        - Reference specific messages, calls, contacts, phone numbers, dates, or patterns from the evidence
-        - Highlight critical findings that require immediate investigative attention
-        - Suggest specific investigative actions, interview priorities, or surveillance recommendations
-        - Use professional law enforcement terminology and investigation procedures
-        - Classify threat levels and urgency appropriately (Critical/High/Medium/Low)
-        - If the query cannot be fully answered from available evidence, state this clearly and suggest additional investigation steps
-        - Format your response with clear sections, bullet points, and professional structure
-        - Include specific quotes or evidence references where relevant
-        - Prioritize actionable intelligence and investigative leads
+        INSTRUCTIONS:
+        - Keep response under 200 words and highly focused
+        - Provide direct answer with specific evidence (message IDs, phone numbers, dates)
+        - List only the most critical findings
+        - Use bullet points for clarity
+        - Include threat level (Critical/High/Medium/Low) 
+        - Suggest 2-3 key next steps maximum
         
-        INVESTIGATION RESPONSE FORMAT:
-        Use this professional structure:
+        RESPONSE FORMAT:
+        **FINDINGS:**
+        [Brief direct answer with key evidence]
         
-        ## INVESTIGATION OFFICER ASSESSMENT
+        **CRITICAL EVIDENCE:**
+        • [Most important evidence with specific references]
+        • [Second most important evidence]
         
-        ### DIRECT RESPONSE TO QUERY
-        [Direct answer to the specific question asked]
+        **THREAT LEVEL:** [Critical/High/Medium/Low]
         
-        ### KEY EVIDENCE FINDINGS
-        [Specific evidence from the analysis with references]
+        **NEXT STEPS:**
+        1. [Most urgent action]
+        2. [Second priority action]
         
-        ### THREAT ASSESSMENT
-        [Risk level and urgency classification]
-        
-        ### INVESTIGATIVE RECOMMENDATIONS
-        [Specific next steps for the investigation team]
-        
-        ### ADDITIONAL CONSIDERATIONS
-        [Other relevant findings or concerns]
-        
-        Provide your professional investigation response:
+        Keep it concise and actionable:
         """
         
         # Try with retry logic for network issues

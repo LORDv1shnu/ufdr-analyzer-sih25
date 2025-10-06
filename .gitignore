@@ -1,15 +1,3 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -61,7 +49,7 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Environments
+# Virtual environments
 .env
 .venv
 env/
@@ -70,12 +58,14 @@ ENV/
 env.bak/
 venv.bak/
 
-# IDEs
+# IDEs and editors
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.spyderproject
+.spyproject
 
 # OS files
 .DS_Store
@@ -86,21 +76,21 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# Project specific
-# Exclude local database files and large media
+# UFDR Project Specific
+# Local database files (recreated on ingest)
 *.db
 *.sqlite
 *.sqlite3
 
-# Sensitive files
+# Sensitive configuration files
 apikey.txt
 config.py
 
-# Analysis outputs and logs
+# Generated analysis files (recreated by preanalyzer)
 analysis.txt
 *.log
 
-# Streamlit cache and settings
+# Streamlit
 .streamlit/
 
 # Temporary files
@@ -108,6 +98,22 @@ analysis.txt
 *.temp
 .cache/
 
-# Fake UFDR media (uncomment if you want to track media)
-# fake_ufdr/media/images/*.jpg
-# fake_ufdr/media/videos/*
+# Local media files (keep sample structure but ignore large files)
+fake_ufdr/media/images/*.zip
+fake_ufdr/media/videos/*.mp4
+fake_ufdr/media/videos/*.avi
+fake_ufdr/media/videos/*.mov
+
+# Screenshots for README (keep these)
+# screenshots/*.png
+# screenshots/*.jpg
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Local development files
+.pytest_cache/
+.coverage
+.mypy_cache/
+.dmypy.json
+dmypy.json
