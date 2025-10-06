@@ -234,7 +234,7 @@ class UFDRPreAnalyzer:
             report.append(f"File Type: {media_file.file_type}\n")
             
             # Check if file actually exists
-            full_path = os.path.join("fake_ufdr", media_file.file_path)
+            full_path = media_file.file_path
             if os.path.exists(full_path):
                 # Analyze with AI
                 try:

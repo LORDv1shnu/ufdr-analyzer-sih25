@@ -700,80 +700,388 @@ def render_contacts_explorer(interface):
     else:
         st.info("No contacts found in the database.")
 
-def render_media_explorer(interface):
-    """Render media files data explorer"""
-    st.markdown("### 🖼️ Media Files Explorer")
+def get_combined_media_data(interface):
+    """Get media data by combining direct file system access with database analysis"""
+    combined_data = []
     
-    media_data = interface.get_all_media()
+    # Direct access to image folder
+    images_folder = "fake_ufdr/media/images"
+    videos_folder = "fake_ufdr/media/videos"
+    
+    # Get database media analysis if available
+    db_media_data = {}
+    if interface.engine:
+        try:
+            with Session(interface.engine) as session:
+                media_files = session.exec(select(MediaFile)).all()
+                for media in media_files:
+                    db_media_data[media.filename] = {
+                        'ai_description': media.ai_description or '',
+                        'detected_objects': media.detected_objects or '[]',
+                        'contains_text': media.contains_text or '',
+                        'faces_detected': media.faces_detected or 0,
+                        'risk_level': media.risk_level or 'unknown',
+                        'tags': media.tags or '[]'
+                    }
+        except Exception as e:
+            st.error(f"Error loading database analysis: {e}")
+    
+    # Process images
+    if os.path.exists(images_folder):
+        for filename in sorted(os.listdir(images_folder)):
+            if filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')):
+                file_path = os.path.join(images_folder, filename)
+                
+                # Get analysis from database if available
+                analysis = db_media_data.get(filename, {})
+                combined_data.append({
+                    'Filename': filename,
+                    'Type': 'image',
+                    'File Path': file_path,
+                    'Description': analysis.get('ai_description', 'No analysis available'),
+                    'Objects': analysis.get('detected_objects', '[]'),
+                    'Text Content': analysis.get('contains_text', ''),
+                    'Faces': analysis.get('faces_detected', 0),
+                    'Risk Level': analysis.get('risk_level', 'unknown'),
+                    'Tags': analysis.get('tags', '[]')
+                })
+    
+    # Process videos
+    if os.path.exists(videos_folder):
+        for filename in sorted(os.listdir(videos_folder)):
+            if filename.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.txt')):
+                file_path = os.path.join(videos_folder, filename)
+                
+                # Get analysis from database if available
+                analysis = db_media_data.get(filename, {})
+                
+                combined_data.append({
+                    'Filename': filename,
+                    'Type': 'video',
+                    'File Path': file_path,
+                    'Description': analysis.get('ai_description', 'No analysis available'),
+                    'Objects': analysis.get('detected_objects', '[]'),
+                    'Text Content': analysis.get('contains_text', ''),
+                    'Faces': analysis.get('faces_detected', 0),
+                    'Risk Level': analysis.get('risk_level', 'unknown'),
+                    'Tags': analysis.get('tags', '[]')
+                })
+    
+    return combined_data
+
+def render_media_explorer(interface):
+    """Render enhanced media files data explorer with image viewer and file search"""
+    st.markdown("### 🖼️ Enhanced Media Files Explorer")
+    
+    # Get combined media data (direct from folder + database analysis)
+    media_data = get_combined_media_data(interface)
     
     if media_data:
-        st.markdown(f"**Total Media Files: {len(media_data)}**")
+        # Enhanced search and filter controls
+        st.markdown("#### 🔍 Search & Filter Controls")
         
-        # Convert to DataFrame
-        df = pd.DataFrame(media_data)
-        
-        # Filter options
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         
         with col1:
+            # File search by name/content
+            search_query = st.text_input(
+                "🔍 Search Files:",
+                placeholder="Search by filename, description, or detected objects...",
+                key="media_search",
+                help="Search across filenames, AI descriptions, detected objects, and tags"
+            )
+        
+        with col2:
+            # Media type filter
+            df = pd.DataFrame(media_data)
             media_type_filter = st.multiselect(
-                "Media Type:",
+                "📁 Media Type:",
                 options=df['Type'].unique().tolist() if 'Type' in df.columns else [],
                 default=df['Type'].unique().tolist() if 'Type' in df.columns else [],
                 key="media_type_filter"
             )
         
-        with col2:
+        with col3:
+            # Risk level filter
             risk_filter = st.multiselect(
-                "Risk Level:",
+                "⚠️ Risk Level:",
                 options=df['Risk Level'].unique().tolist() if 'Risk Level' in df.columns else [],
                 default=df['Risk Level'].unique().tolist() if 'Risk Level' in df.columns else [],
                 key="media_risk_filter"
             )
         
-        # Apply filters
+        # Advanced filters
+        with st.expander("🔧 Advanced Filters"):
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                faces_filter = st.checkbox("🧑 Show only files with faces detected", key="faces_filter")
+                text_filter = st.checkbox("📝 Show only files with text content", key="text_filter")
+            
+            with col2:
+                objects_search = st.text_input(
+                    "🎯 Search Objects:",
+                    placeholder="e.g., car, person, weapon...",
+                    key="objects_search"
+                )
+            
+            with col3:
+                tags_search = st.text_input(
+                    "🏷️ Search Tags:",
+                    placeholder="e.g., suspicious, outdoor, vehicle...",
+                    key="tags_search"
+                )
+        
+        # Apply all filters
         filtered_df = df.copy()
+        
+        # Text search across multiple fields
+        if search_query:
+            search_mask = (
+                filtered_df['Filename'].str.contains(search_query, case=False, na=False) |
+                filtered_df['Description'].str.contains(search_query, case=False, na=False) |
+                filtered_df['Objects'].str.contains(search_query, case=False, na=False) |
+                filtered_df['Tags'].str.contains(search_query, case=False, na=False) |
+                filtered_df['Text Content'].str.contains(search_query, case=False, na=False)
+            )
+            filtered_df = filtered_df[search_mask]
+        
+        # Media type filter
         if media_type_filter and 'Type' in df.columns:
             filtered_df = filtered_df[filtered_df['Type'].isin(media_type_filter)]
+        
+        # Risk level filter
         if risk_filter and 'Risk Level' in df.columns:
             filtered_df = filtered_df[filtered_df['Risk Level'].isin(risk_filter)]
         
-        st.markdown(f"**Showing {len(filtered_df)} media files**")
+        # Faces filter
+        if faces_filter:
+            filtered_df = filtered_df[filtered_df['Faces'] > 0]
         
-        # Display media files as cards
-        for i, media in filtered_df.iterrows():
-            with st.expander(f"🖼️ {media['Filename']} ({media['Type']})"):
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown(f"**Type:** {media['Type']}")
-                    st.markdown(f"**Risk Level:** {media['Risk Level']}")
-                    if media['Faces']:
-                        st.markdown(f"**Faces Detected:** {media['Faces']}")
-                
-                with col2:
-                    if media['Description']:
-                        st.markdown(f"**AI Description:** {media['Description']}")
-                    if media['Text Content']:
-                        st.markdown(f"**Text Content:** {media['Text Content'][:100]}...")
-                
-                if media['Objects']:
-                    try:
-                        objects = json.loads(media['Objects']) if isinstance(media['Objects'], str) else media['Objects']
-                        if objects:
-                            st.markdown(f"**Detected Objects:** {', '.join(objects)}")
-                    except:
-                        pass
-                
-                if media['Tags']:
-                    try:
-                        tags = json.loads(media['Tags']) if isinstance(media['Tags'], str) else media['Tags']
-                        if tags:
-                            st.markdown(f"**Tags:** {', '.join(tags)}")
-                    except:
-                        pass
+        # Text content filter
+        if text_filter:
+            filtered_df = filtered_df[filtered_df['Text Content'].notna() & (filtered_df['Text Content'] != '')]
+        
+        # Objects search
+        if objects_search:
+            objects_mask = filtered_df['Objects'].str.contains(objects_search, case=False, na=False)
+            filtered_df = filtered_df[objects_mask]
+        
+        # Tags search
+        if tags_search:
+            tags_mask = filtered_df['Tags'].str.contains(tags_search, case=False, na=False)
+            filtered_df = filtered_df[tags_mask]
+        
+        # Results summary
+        st.markdown("---")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("📊 Total Files", len(media_data))
+        with col2:
+            st.metric("🎯 Filtered Results", len(filtered_df))
+        with col3:
+            st.metric("📸 Images Found", len(filtered_df[filtered_df['Type'] == 'image']) if len(filtered_df) > 0 else 0)
+        
+        if len(filtered_df) > 0:
+            # View mode selector
+            st.markdown("#### 📋 Display Options")
+            view_mode = st.radio(
+                "Choose view mode:",
+                ["🖼️ Image Gallery", "📋 Detailed List", "📊 Data Table"],
+                horizontal=True,
+                key="media_view_mode"
+            )
+            
+            if view_mode == "🖼️ Image Gallery":
+                render_image_gallery(filtered_df)
+            elif view_mode == "📋 Detailed List":
+                render_detailed_media_list(filtered_df)
+            else:
+                render_media_data_table(filtered_df)
+        else:
+            st.warning("🚫 No media files match the current filters.")
     else:
         st.info("No media files found in the database.")
+
+def render_image_gallery(df):
+    """Render images in a responsive gallery format"""
+    st.markdown("#### 🖼️ Image Gallery View")
+    
+    images_df = df[df['Type'] == 'image']
+    
+    if len(images_df) == 0:
+        st.info("📷 No images to display with current filters.")
+        return
+    
+    # Gallery layout - 3 columns
+    cols_per_row = 3
+    rows = [images_df.iloc[i:i+cols_per_row] for i in range(0, len(images_df), cols_per_row)]
+    
+    for row in rows:
+        cols = st.columns(cols_per_row)
+        
+        for idx, (_, media) in enumerate(row.iterrows()):
+            if idx < len(cols):
+                with cols[idx]:
+                    # Check if image file exists
+                    image_path = media.get('File Path', '')
+                    if os.path.exists(image_path):
+                        try:
+                            # Display image with Streamlit's built-in image viewer
+                            st.image(
+                                image_path,
+                                caption=f"� {media['Filename']}",
+                                use_column_width=True
+                            )
+                            
+                            # Image info card
+                            with st.expander(f"🔍 View Details: {media['Filename']}"):
+                                # Risk level with color coding
+                                risk_color = {
+                                    'critical': '🔴', 'high': '🟠', 
+                                    'medium': '🟡', 'low': '🟢', 
+                                    'unknown': '⚪'
+                                }
+                                risk_level = media.get('Risk Level', 'unknown').lower()
+                                st.markdown(f"**Risk Level:** {risk_color.get(risk_level, '⚪')} {media.get('Risk Level', 'Unknown')}")
+                                
+                                if media.get('Faces', 0) > 0:
+                                    st.markdown(f"**👥 Faces Detected:** {media['Faces']}")
+                                
+                                if media.get('Description'):
+                                    st.markdown(f"**🤖 AI Analysis:**")
+                                    st.write(media['Description'][:200] + "..." if len(media['Description']) > 200 else media['Description'])
+                                
+                                if media.get('Text Content'):
+                                    st.markdown(f"**📝 Text Found:** {media['Text Content']}")
+                                
+                                # Display objects as badges
+                                if media.get('Objects'):
+                                    try:
+                                        objects = json.loads(media['Objects']) if isinstance(media['Objects'], str) else media['Objects']
+                                        if objects:
+                                            st.markdown("**🎯 Detected Objects:**")
+                                            # Create badges for objects
+                                            objects_html = ""
+                                            for obj in objects[:10]:  # Limit to first 10
+                                                objects_html += f'<span style="background-color: #e1f5fe; padding: 2px 8px; margin: 2px; border-radius: 12px; font-size: 0.8em; display: inline-block;">{obj}</span> '
+                                            st.markdown(objects_html, unsafe_allow_html=True)
+                                    except:
+                                        pass
+                                
+                                # Download button for image
+                                if os.path.exists(image_path):
+                                    with open(image_path, "rb") as file:
+                                        st.download_button(
+                                            label="💾 Download Image",
+                                            data=file.read(),
+                                            file_name=media['Filename'],
+                                            mime="image/jpeg"
+                                        )
+                        
+                        except Exception as e:
+                            st.error(f"❌ Cannot display image: {e}")
+                            st.text(f"📁 File: {media['Filename']}")
+                    else:
+                        st.error(f"❌ Image file not found: {media['Filename']}")
+                        st.text(f"📁 Expected path: {image_path}")
+
+def render_detailed_media_list(df):
+    """Render media files in detailed expandable list format"""
+    st.markdown("#### 📋 Detailed Media List")
+    
+    for i, media in df.iterrows():
+        # Color-coded risk indicator
+        risk_colors = {
+            'critical': '#ff1744', 'high': '#ff9800', 
+            'medium': '#ffc107', 'low': '#4caf50', 
+            'unknown': '#9e9e9e'
+        }
+        risk_level = media.get('Risk Level', 'unknown').lower()
+        risk_color = risk_colors.get(risk_level, '#9e9e9e')
+        
+        # File type icon
+        file_icon = "🖼️" if media['Type'] == 'image' else "🎥" if media['Type'] == 'video' else "📄"
+        
+        with st.expander(f"{file_icon} {media['Filename']} | Risk: {media.get('Risk Level', 'Unknown')} | Type: {media['Type']}", expanded=False):
+            col1, col2 = st.columns([1, 2])
+            
+            with col1:
+                # Display image thumbnail if it's an image
+                if media['Type'] == 'image' and os.path.exists(media.get('File Path', '')):
+                    try:
+                        st.image(media['File Path'], width=200, caption="Preview")
+                    except:
+                        st.text("📷 Image preview unavailable")
+                
+                # File metadata
+                st.markdown(f"**📁 File:** {media['Filename']}")
+                st.markdown(f"**📂 Type:** {media['Type']}")
+                st.markdown(f"**⚠️ Risk:** <span style='color: {risk_color}; font-weight: bold;'>{media.get('Risk Level', 'Unknown')}</span>", unsafe_allow_html=True)
+                
+                if media.get('Faces', 0) > 0:
+                    st.markdown(f"**👥 Faces:** {media['Faces']}")
+            
+            with col2:
+                # AI Analysis
+                if media.get('Description'):
+                    st.markdown("**🤖 AI Analysis:**")
+                    st.write(media['Description'])
+                
+                if media.get('Text Content'):
+                    st.markdown("**📝 Text Content:**")
+                    st.code(media['Text Content'])
+                
+                # Objects and Tags
+                col2a, col2b = st.columns(2)
+                
+                with col2a:
+                    if media.get('Objects'):
+                        try:
+                            objects = json.loads(media['Objects']) if isinstance(media['Objects'], str) else media['Objects']
+                            if objects:
+                                st.markdown("**🎯 Objects:**")
+                                for obj in objects:
+                                    st.write(f"• {obj}")
+                        except:
+                            pass
+                
+                with col2b:
+                    if media.get('Tags'):
+                        try:
+                            tags = json.loads(media['Tags']) if isinstance(media['Tags'], str) else media['Tags']
+                            if tags:
+                                st.markdown("**🏷️ Tags:**")
+                                for tag in tags:
+                                    st.write(f"• {tag}")
+                        except:
+                            pass
+
+def render_media_data_table(df):
+    """Render media files in a sortable data table format"""
+    st.markdown("#### 📊 Media Files Data Table")
+    
+    # Prepare simplified data for table view
+    table_df = df[['Filename', 'Type', 'Risk Level', 'Faces', 'Description']].copy()
+    
+    # Truncate description for table view
+    table_df['Description'] = table_df['Description'].apply(
+        lambda x: x[:50] + "..." if isinstance(x, str) and len(x) > 50 else x
+    )
+    
+    # Display interactive table
+    st.dataframe(
+        table_df,
+        use_container_width=True,
+        column_config={
+            "Filename": st.column_config.TextColumn("📁 File Name", width="medium"),
+            "Type": st.column_config.TextColumn("📂 Type", width="small"),
+            "Risk Level": st.column_config.TextColumn("⚠️ Risk", width="small"),
+            "Faces": st.column_config.NumberColumn("👥 Faces", width="small"),
+            "Description": st.column_config.TextColumn("🤖 AI Analysis", width="large"),
+        },
+        hide_index=True
+    )
 
 def render_word_search_tab(interface):
     """Render the word-based search tab"""

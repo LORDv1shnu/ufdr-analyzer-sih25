@@ -19,9 +19,9 @@ class AIAnalyzer:
                 with open("apikey.txt", "r", encoding="utf-8") as f:
                     self.api_key = f.read().strip()
                     if self.api_key:
-                        print("✅ API key loaded from apikey.txt")
+                        print("API key loaded from apikey.txt")
             except Exception as e:
-                print(f"⚠️ Could not read apikey.txt: {e}")
+                print(f"Could not read apikey.txt: {e}")
         
         # If not found, try environment variable
         if not self.api_key:
@@ -42,13 +42,13 @@ class AIAnalyzer:
         if self.api_key:
             try:
                 self.client = genai.Client(api_key=self.api_key)
-                print("✅ Gemini AI client initialized successfully")
+                print("Gemini AI client initialized successfully")
             except Exception as e:
-                print(f"⚠️ Gemini AI client initialization failed: {e}")
-                print("💡 Please check your API key in apikey.txt, config.py, or GEMINI_API_KEY environment variable")
+                print(f"Gemini AI client initialization failed: {e}")
+                print("Please check your API key in apikey.txt, config.py, or GEMINI_API_KEY environment variable")
                 self.client = None
         else:
-            print("⚠️ No API key found. Please put your API key in apikey.txt file or set GEMINI_API_KEY")
+            print("No API key found. Please put your API key in apikey.txt file or set GEMINI_API_KEY")
     
     def is_available(self) -> bool:
         """Check if AI analysis is available"""
@@ -273,7 +273,15 @@ class AIAnalyzer:
             
             if response.text:
                 try:
-                    result = json.loads(response.text.strip())
+                    # Clean the response text - remove markdown code blocks
+                    clean_text = response.text.strip()
+                    if clean_text.startswith("```json"):
+                        clean_text = clean_text[7:]  # Remove ```json
+                    if clean_text.endswith("```"):
+                        clean_text = clean_text[:-3]  # Remove ```
+                    clean_text = clean_text.strip()
+                    
+                    result = json.loads(clean_text)
                     return {
                         "ai_description": result.get("description", "Image analyzed"),
                         "detected_objects": json.dumps(result.get("objects", [])),

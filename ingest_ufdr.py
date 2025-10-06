@@ -37,6 +37,50 @@ def ingest_from_folder(folder):
         except Exception as e:
             print(f"Calls error: {e}")
             
+        # Media Files (Images and Videos)
+        try:
+            media_count = 0
+            media_dir = os.path.join(folder, "media")
+            
+            if os.path.exists(media_dir):
+                # Import images
+                images_dir = os.path.join(media_dir, "images")
+                if os.path.exists(images_dir):
+                    for filename in os.listdir(images_dir):
+                        if filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')):
+                            file_path = os.path.join(images_dir, filename)
+                            file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+                            media_file = MediaFile(
+                                filename=filename,
+                                file_type="image",
+                                file_path=file_path,
+                                size=file_size
+                            )
+                            sess.add(media_file)
+                            media_count += 1
+                
+                # Import videos
+                videos_dir = os.path.join(media_dir, "videos")
+                if os.path.exists(videos_dir):
+                    for filename in os.listdir(videos_dir):
+                        if filename.lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.wmv', '.txt')):  # .txt for video placeholders
+                            file_path = os.path.join(videos_dir, filename)
+                            file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+                            media_file = MediaFile(
+                                filename=filename,
+                                file_type="video",
+                                file_path=file_path,
+                                size=file_size
+                            )
+                            sess.add(media_file)
+                            media_count += 1
+                            
+                print(f"Imported {media_count} media files")
+            else:
+                print("No media directory found")
+        except Exception as e:
+            print(f"Media files error: {e}")
+            
         sess.commit()
 
 if __name__ == "__main__":
