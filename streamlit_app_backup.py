@@ -24,7 +24,17 @@ class UFDRInterface:
         self.engine = None
         
         # Initialize database connection
-        if os.path.exists(self.db_file):
+        if os    # Main tabs
+    tab1, tab2, tab3 = st.tabs(["🤖 AI Investigation Query", "📊 Forensic Data Explorer", "🔍 Word-Based Search"])
+    
+    with tab1:
+        render_ai_query_tab(interface)
+    
+    with tab2:
+        render_data_explorer_tab(interface)
+    
+    with tab3:
+        render_word_search_tab(interface)ists(self.db_file):
             self.engine = create_engine(f"sqlite:///{self.db_file}", echo=False)
     
     def load_analysis_report(self) -> Optional[str]:
@@ -212,125 +222,6 @@ class UFDRInterface:
         except Exception as e:
             st.error(f"Error searching messages: {e}")
             return []
-    
-    def comprehensive_word_search(self, search_term: str) -> Dict[str, List[Dict]]:
-        """Comprehensive word search across all data types"""
-        if not self.engine:
-            return {"messages": [], "calls": [], "contacts": [], "media": []}
-        
-        results = {
-            "messages": [],
-            "calls": [],
-            "contacts": [],
-            "media": []
-        }
-        
-        search_lower = search_term.lower()
-        
-        try:
-            with Session(self.engine) as session:
-                # Search Messages
-                messages = session.exec(select(Message)).all()
-                for msg in messages:
-                    found_in = []
-                    if msg.body and search_lower in msg.body.lower():
-                        found_in.append("body")
-                    if msg.sender and search_lower in msg.sender.lower():
-                        found_in.append("sender")
-                    if msg.receiver and search_lower in msg.receiver.lower():
-                        found_in.append("receiver")
-                    if msg.ai_summary and search_lower in msg.ai_summary.lower():
-                        found_in.append("ai_summary")
-                    
-                    if found_in:
-                        results["messages"].append({
-                            "id": msg.id,
-                            "timestamp": msg.timestamp,
-                            "sender": msg.sender,
-                            "receiver": msg.receiver,
-                            "body": msg.body,
-                            "risk_level": msg.risk_level,
-                            "ai_summary": msg.ai_summary,
-                            "found_in": found_in
-                        })
-                
-                # Search Calls
-                calls = session.exec(select(Call)).all()
-                for call in calls:
-                    found_in = []
-                    if call.caller and search_lower in call.caller.lower():
-                        found_in.append("caller")
-                    if call.callee and search_lower in call.callee.lower():
-                        found_in.append("callee")
-                    if call.type and search_lower in call.type.lower():
-                        found_in.append("type")
-                    
-                    if found_in:
-                        results["calls"].append({
-                            "id": call.id,
-                            "timestamp": call.timestamp,
-                            "caller": call.caller,
-                            "callee": call.callee,
-                            "duration": call.duration,
-                            "type": call.type,
-                            "risk_level": call.risk_level,
-                            "found_in": found_in
-                        })
-                
-                # Search Contacts
-                contacts = session.exec(select(Contact)).all()
-                for contact in contacts:
-                    found_in = []
-                    if contact.name and search_lower in contact.name.lower():
-                        found_in.append("name")
-                    if contact.phone and search_lower in contact.phone.lower():
-                        found_in.append("phone")
-                    if contact.email and search_lower in contact.email.lower():
-                        found_in.append("email")
-                    if contact.notes and search_lower in contact.notes.lower():
-                        found_in.append("notes")
-                    
-                    if found_in:
-                        results["contacts"].append({
-                            "id": contact.id,
-                            "name": contact.name,
-                            "phone": contact.phone,
-                            "email": contact.email,
-                            "notes": contact.notes,
-                            "found_in": found_in
-                        })
-                
-                # Search Media Files
-                media_files = session.exec(select(MediaFile)).all()
-                for media in media_files:
-                    found_in = []
-                    if media.filename and search_lower in media.filename.lower():
-                        found_in.append("filename")
-                    if media.ai_description and search_lower in media.ai_description.lower():
-                        found_in.append("ai_description")
-                    if media.contains_text and search_lower in media.contains_text.lower():
-                        found_in.append("contains_text")
-                    if media.detected_objects and search_lower in media.detected_objects.lower():
-                        found_in.append("detected_objects")
-                    if media.tags and search_lower in media.tags.lower():
-                        found_in.append("tags")
-                    
-                    if found_in:
-                        results["media"].append({
-                            "id": media.id,
-                            "filename": media.filename,
-                            "file_type": media.file_type,
-                            "ai_description": media.ai_description,
-                            "contains_text": media.contains_text,
-                            "detected_objects": media.detected_objects,
-                            "risk_level": media.risk_level,
-                            "found_in": found_in
-                        })
-                        
-        except Exception as e:
-            st.error(f"Error during comprehensive search: {e}")
-        
-        return results
 
 def render_ai_query_tab(interface):
     """Render the AI Query tab"""
@@ -753,208 +644,6 @@ def render_media_explorer(interface):
     else:
         st.info("No media files found in the database.")
 
-def render_word_search_tab(interface):
-    """Render the word-based search tab"""
-    st.markdown("## 🔍 Word-Based Search Engine")
-    st.markdown("**Offline search through all UFDR data - No AI required**")
-    
-    if not interface.engine:
-        st.markdown("""
-        <div class="error-box">
-        <h4>❌ Database Not Found</h4>
-        <p>The UFDR database is missing. Please run data ingestion first:</p>
-        <code>python ingest_ufdr.py fake_ufdr</code>
-        </div>
-        """, unsafe_allow_html=True)
-        return
-    
-    # Search interface
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-        search_term = st.text_input(
-            "🔍 Enter search term:",
-            placeholder="e.g., drugs, suspicious, phone numbers, names, etc.",
-            help="Search across all messages, calls, contacts, and media files"
-        )
-    
-    with col2:
-        case_sensitive = st.checkbox("Case Sensitive", value=False)
-        exact_match = st.checkbox("Exact Match", value=False)
-    
-    if search_term and len(search_term.strip()) >= 2:
-        # Show search progress
-        with st.spinner(f"🔍 Searching for '{search_term}' across all UFDR data..."):
-            # Perform comprehensive search
-            results = interface.comprehensive_word_search(search_term.strip())
-            
-            # Calculate totals
-            total_results = (
-                len(results["messages"]) + 
-                len(results["calls"]) + 
-                len(results["contacts"]) + 
-                len(results["media"])
-            )
-        
-        # Display results summary
-        st.markdown("---")
-        st.markdown("## 📊 Search Results Summary")
-        
-        col1, col2, col3, col4, col5 = st.columns(5)
-        with col1:
-            st.metric("🎯 Total Results", total_results)
-        with col2:
-            st.metric("📩 Messages", len(results["messages"]))
-        with col3:
-            st.metric("📞 Calls", len(results["calls"]))
-        with col4:
-            st.metric("👥 Contacts", len(results["contacts"]))
-        with col5:
-            st.metric("🖼️ Media", len(results["media"]))
-        
-        if total_results == 0:
-            st.info(f"🔍 No results found for '{search_term}'. Try different search terms or check spelling.")
-            return
-        
-        # Results display with tabs
-        if total_results > 0:
-            result_tabs = []
-            tab_names = []
-            
-            if results["messages"]:
-                tab_names.append(f"📩 Messages ({len(results['messages'])})")
-                result_tabs.append("messages")
-            if results["calls"]:
-                tab_names.append(f"📞 Calls ({len(results['calls'])})")
-                result_tabs.append("calls")
-            if results["contacts"]:
-                tab_names.append(f"👥 Contacts ({len(results['contacts'])})")
-                result_tabs.append("contacts")
-            if results["media"]:
-                tab_names.append(f"🖼️ Media ({len(results['media'])})")
-                result_tabs.append("media")
-            
-            # Create dynamic tabs based on results
-            tabs = st.tabs(tab_names)
-            
-            for i, (tab, result_type) in enumerate(zip(tabs, result_tabs)):
-                with tab:
-                    display_search_results(results[result_type], result_type, search_term)
-    
-    elif search_term and len(search_term.strip()) < 2:
-        st.warning("⚠️ Please enter at least 2 characters to search.")
-    
-    # Search tips
-    with st.expander("💡 Search Tips", expanded=False):
-        st.markdown("""
-        **Search Features:**
-        - **Cross-Data Search**: Searches messages, calls, contacts, and media files simultaneously
-        - **Partial Matching**: Finds partial matches within text
-        - **Field-Specific Results**: Shows exactly where the term was found
-        - **Offline Operation**: No internet or AI required
-        
-        **Search Examples:**
-        - `drugs` - Find drug-related communications
-        - `+919` - Find Indian phone numbers
-        - `Inspector` - Find law enforcement contacts
-        - `suspicious` - Find flagged content
-        - `meetup` - Find meeting arrangements
-        
-        **Data Sources Searched:**
-        - **Messages**: Body, sender, receiver, AI summaries
-        - **Calls**: Caller, callee, call type
-        - **Contacts**: Name, phone, email, notes
-        - **Media**: Filename, AI description, OCR text, detected objects
-        """)
-
-def display_search_results(results: List[Dict], result_type: str, search_term: str):
-    """Display search results for specific data type"""
-    
-    if result_type == "messages":
-        st.markdown(f"### 📩 Messages containing '{search_term}'")
-        
-        for i, msg in enumerate(results):
-            with st.expander(f"Message {msg['id']} - {msg['sender']} → {msg['receiver']} ({msg['timestamp']})"):
-                # Highlight found fields
-                st.markdown(f"**Found in**: {', '.join(msg['found_in'])}")
-                st.markdown(f"**Risk Level**: {msg['risk_level']}")
-                
-                if msg['body']:
-                    st.markdown("**Message Body:**")
-                    highlighted_body = highlight_search_term(msg['body'], search_term)
-                    st.markdown(highlighted_body, unsafe_allow_html=True)
-                
-                if msg['ai_summary']:
-                    st.markdown(f"**AI Summary**: {msg['ai_summary']}")
-    
-    elif result_type == "calls":
-        st.markdown(f"### 📞 Calls containing '{search_term}'")
-        
-        for call in results:
-            with st.expander(f"Call {call['id']} - {call['caller']} ↔ {call['callee']} ({call['timestamp']})"):
-                st.markdown(f"**Found in**: {', '.join(call['found_in'])}")
-                st.markdown(f"**Duration**: {call['duration']} seconds")
-                st.markdown(f"**Type**: {call['type']}")
-                st.markdown(f"**Risk Level**: {call['risk_level']}")
-    
-    elif result_type == "contacts":
-        st.markdown(f"### 👥 Contacts containing '{search_term}'")
-        
-        for contact in results:
-            with st.expander(f"Contact {contact['id']} - {contact['name']} ({contact['phone']})"):
-                st.markdown(f"**Found in**: {', '.join(contact['found_in'])}")
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown(f"**Name**: {contact['name']}")
-                    st.markdown(f"**Phone**: {contact['phone']}")
-                with col2:
-                    st.markdown(f"**Email**: {contact['email'] or 'N/A'}")
-                    st.markdown(f"**Notes**: {contact['notes'] or 'N/A'}")
-    
-    elif result_type == "media":
-        st.markdown(f"### 🖼️ Media Files containing '{search_term}'")
-        
-        for media in results:
-            with st.expander(f"Media {media['id']} - {media['filename']} ({media['file_type']})"):
-                st.markdown(f"**Found in**: {', '.join(media['found_in'])}")
-                st.markdown(f"**Type**: {media['file_type']}")
-                st.markdown(f"**Risk Level**: {media['risk_level']}")
-                
-                if media['ai_description']:
-                    st.markdown(f"**AI Description**: {media['ai_description']}")
-                
-                if media['contains_text']:
-                    st.markdown("**Text Content (OCR):**")
-                    highlighted_text = highlight_search_term(media['contains_text'], search_term)
-                    st.markdown(highlighted_text, unsafe_allow_html=True)
-
-def highlight_search_term(text: str, search_term: str) -> str:
-    """Highlight search term in text"""
-    if not text or not search_term:
-        return text
-    
-    # Simple highlighting with HTML
-    highlighted = text.replace(
-        search_term, 
-        f"<mark style='background-color: #ffff00; font-weight: bold;'>{search_term}</mark>"
-    )
-    
-    # Also highlight case-insensitive matches
-    if search_term.lower() != search_term:
-        highlighted = highlighted.replace(
-            search_term.lower(), 
-            f"<mark style='background-color: #ffff00; font-weight: bold;'>{search_term.lower()}</mark>"
-        )
-    
-    if search_term.upper() != search_term:
-        highlighted = highlighted.replace(
-            search_term.upper(), 
-            f"<mark style='background-color: #ffff00; font-weight: bold;'>{search_term.upper()}</mark>"
-        )
-    
-    return highlighted
-
 def main():
     # Page config
     st.set_page_config(
@@ -1083,12 +772,6 @@ def main():
         - Filter and search
         - Detailed data views
         
-        **Word Search Tab:**
-        - Offline word-based search
-        - Search across all data types
-        - Fast and comprehensive
-        - No AI or internet needed
-        
         **Troubleshooting:**
         - Use "Test AI Connection" if queries fail
         - Check internet connectivity
@@ -1096,16 +779,13 @@ def main():
         """)
     
     # Main tabs
-    tab1, tab2, tab3 = st.tabs(["🤖 AI Investigation Query", "📊 Forensic Data Explorer", "🔍 Word-Based Search"])
+    tab1, tab2 = st.tabs(["🤖 AI Investigation Query", "� Forensic Data Explorer"])
     
     with tab1:
         render_ai_query_tab(interface)
     
     with tab2:
         render_data_explorer_tab(interface)
-    
-    with tab3:
-        render_word_search_tab(interface)
 
 if __name__ == "__main__":
     main()

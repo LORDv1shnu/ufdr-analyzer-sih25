@@ -104,6 +104,39 @@ class UFDRPreAnalyzer:
         print(f"   📞 Calls: {len(calls)}")
         print(f"   👥 Contacts: {len(contacts)}")
         
+        # First, add raw data to report
+        report.append("### RAW DATA DUMP ###\n\n")
+        
+        # Add all messages
+        report.append(f"=== ALL MESSAGES ({len(messages)} total) ===\n")
+        if messages:
+            sorted_messages = sorted(messages, key=lambda x: x.timestamp)
+            for i, msg in enumerate(sorted_messages, 1):
+                report.append(f"MSG_{i:03d}: [{msg.timestamp}] {msg.sender} → {msg.receiver}\n")
+                report.append(f"Content: {msg.body}\n")
+                report.append("-" * 40 + "\n")
+        
+        # Add all calls
+        report.append(f"\n=== ALL CALLS ({len(calls)} total) ===\n")
+        if calls:
+            sorted_calls = sorted(calls, key=lambda x: x.timestamp)
+            for i, call in enumerate(sorted_calls, 1):
+                report.append(f"CALL_{i:03d}: [{call.timestamp}] {call.caller} → {call.callee}\n")
+                report.append(f"Duration: {call.duration}s | Type: {call.type}\n")
+                report.append("-" * 40 + "\n")
+        
+        # Add all contacts
+        report.append(f"\n=== ALL CONTACTS ({len(contacts)} total) ===\n")
+        if contacts:
+            for i, contact in enumerate(contacts, 1):
+                report.append(f"CONTACT_{i:03d}: {contact.name}\n")
+                report.append(f"Phone: {contact.phone}\n")
+                report.append(f"Email: {contact.email or 'No email'}\n")
+                report.append(f"Notes: {contact.notes or 'No notes'}\n")
+                report.append("-" * 40 + "\n")
+        
+        report.append("\n" + "=" * 60 + "\n\n")
+        
         # Create comprehensive data summary for AI
         data_summary = self._create_comprehensive_data_summary(messages, calls, contacts)
         
@@ -111,24 +144,44 @@ class UFDRPreAnalyzer:
         print("   🤖 Sending all data to AI for analysis...")
         
         prompt = f"""
-        You are a forensic analyst examining UFDR (Universal Forensic Data Report) data for criminal investigation.
+        You are a forensic analyst examining UFDR (Universal Forensic Data Report) data for comprehensive investigation.
         
-        Analyze this complete dataset and provide comprehensive forensic insights:
+        Analyze this COMPLETE dataset and provide detailed analysis of ALL information:
         
         {data_summary}
         
-        Please provide a detailed forensic analysis report including:
+        Please provide a comprehensive analysis report that includes:
         
-        1. EXECUTIVE SUMMARY - Key findings and overall assessment
-        2. CRIMINAL ACTIVITY INDICATORS - Any signs of illegal activities
-        3. COMMUNICATION PATTERNS - Suspicious communication behaviors
-        4. NETWORK ANALYSIS - Key players and relationships
-        5. TEMPORAL ANALYSIS - Time-based patterns and anomalies
-        6. RISK ASSESSMENT - Overall threat level and concerns
-        7. EVIDENCE HIGHLIGHTS - Most significant findings
-        8. INVESTIGATIVE RECOMMENDATIONS - Next steps for investigation
+        1. COMPLETE MESSAGE ANALYSIS - Analyze EVERY message individually and identify:
+           - Content themes (money, relationships, business, personal, etc.)
+           - Communication patterns
+           - Any concerning or notable content
+           - Financial transactions or money-related discussions
+           - Meeting arrangements and locations
+           - Personal relationships and social connections
         
-        Focus on forensic value and criminal investigation aspects.
+        2. COMPLETE CALL ANALYSIS - Analyze ALL call records:
+           - Call frequency patterns
+           - Duration analysis
+           - Communication relationships
+           - Time patterns
+        
+        3. COMPLETE CONTACT ANALYSIS - Analyze ALL contacts:
+           - Relationship mapping
+           - Contact categorization
+           - Network connections
+        
+        4. COMPREHENSIVE INSIGHTS:
+           - Overall communication behavior
+           - Social network structure
+           - Any patterns or anomalies
+           - Financial or business activities mentioned
+           - Personal life insights
+           - Professional connections
+        
+        5. DETAILED FINDINGS - Document ALL significant information found, not just suspicious items
+        
+        IMPORTANT: Analyze and document ALL data, including normal everyday communications, financial discussions, personal conversations, business talks, etc. Do not focus only on criminal activities - provide complete forensic documentation of all digital footprints.
         """
         
         try:
@@ -140,7 +193,7 @@ class UFDRPreAnalyzer:
                 
                 ai_analysis = response.text if hasattr(response, 'text') else str(response)
                 
-                report.append("### COMPREHENSIVE AI ANALYSIS OF ALL TEXT DATA ###\n\n")
+                report.append("### COMPREHENSIVE AI ANALYSIS OF ALL DATA ###\n\n")
                 report.append(ai_analysis)
                 report.append("\n\n" + "=" * 60 + "\n\n")
                 
@@ -211,54 +264,67 @@ class UFDRPreAnalyzer:
         return report
     
     def _create_comprehensive_data_summary(self, messages, calls, contacts) -> str:
-        """Create comprehensive summary of all data for AI analysis"""
+        """Create comprehensive summary of ALL data for AI analysis"""
         summary = []
         
-        # Messages analysis
-        summary.append(f"=== MESSAGES DATA ({len(messages)} total) ===\n")
+        # Messages analysis - Include ALL messages
+        summary.append(f"=== ALL MESSAGES DATA ({len(messages)} total) ===\n")
         
         if messages:
-            # Sample recent messages
-            recent_messages = sorted(messages, key=lambda x: x.timestamp, reverse=True)[:20]
-            summary.append("RECENT MESSAGES SAMPLE:\n")
-            for msg in recent_messages:
-                summary.append(f"[{msg.timestamp}] {msg.sender} → {msg.receiver}: {msg.body}\n")
+            # Include ALL messages, not just a sample
+            sorted_messages = sorted(messages, key=lambda x: x.timestamp)
+            summary.append("ALL MESSAGES (chronological order):\n")
+            for i, msg in enumerate(sorted_messages, 1):
+                summary.append(f"MSG_{i:03d}: [{msg.timestamp}] {msg.sender} → {msg.receiver}: {msg.body}\n")
             
             # Message statistics
             senders = set(msg.sender for msg in messages)
+            receivers = set(msg.receiver for msg in messages)
             summary.append(f"\nMESSAGE STATISTICS:\n")
             summary.append(f"Total Messages: {len(messages)}\n")
             summary.append(f"Unique Senders: {len(senders)}\n")
-            summary.append(f"Top Senders: {', '.join(list(senders)[:10])}\n")
+            summary.append(f"Unique Receivers: {len(receivers)}\n")
+            summary.append(f"All Senders: {', '.join(sorted(senders))}\n")
+            summary.append(f"All Receivers: {', '.join(sorted(receivers))}\n")
         
         summary.append("\n")
         
-        # Calls analysis
-        summary.append(f"=== CALLS DATA ({len(calls)} total) ===\n")
+        # Calls analysis - Include ALL calls
+        summary.append(f"=== ALL CALLS DATA ({len(calls)} total) ===\n")
         
         if calls:
-            # Sample recent calls
-            recent_calls = sorted(calls, key=lambda x: x.timestamp, reverse=True)[:20]
-            summary.append("RECENT CALLS SAMPLE:\n")
-            for call in recent_calls:
-                summary.append(f"[{call.timestamp}] {call.caller} → {call.callee} ({call.duration}s, {call.type})\n")
+            # Include ALL calls, not just a sample
+            sorted_calls = sorted(calls, key=lambda x: x.timestamp)
+            summary.append("ALL CALLS (chronological order):\n")
+            for i, call in enumerate(sorted_calls, 1):
+                summary.append(f"CALL_{i:03d}: [{call.timestamp}] {call.caller} → {call.callee} ({call.duration}s, {call.type})\n")
             
             # Call statistics
             callers = set(call.caller for call in calls)
+            callees = set(call.callee for call in calls)
+            total_duration = sum(call.duration for call in calls)
             summary.append(f"\nCALL STATISTICS:\n")
             summary.append(f"Total Calls: {len(calls)}\n")
             summary.append(f"Unique Callers: {len(callers)}\n")
-            summary.append(f"Average Duration: {sum(call.duration for call in calls) / len(calls):.1f}s\n")
+            summary.append(f"Unique Callees: {len(callees)}\n")
+            summary.append(f"Total Duration: {total_duration}s ({total_duration/60:.1f} minutes)\n")
+            summary.append(f"Average Duration: {total_duration / len(calls):.1f}s\n")
+            summary.append(f"All Callers: {', '.join(sorted(callers))}\n")
+            summary.append(f"All Callees: {', '.join(sorted(callees))}\n")
         
         summary.append("\n")
         
-        # Contacts analysis
-        summary.append(f"=== CONTACTS DATA ({len(contacts)} total) ===\n")
+        # Contacts analysis - Include ALL contacts with full details
+        summary.append(f"=== ALL CONTACTS DATA ({len(contacts)} total) ===\n")
         
         if contacts:
-            summary.append("CONTACT LIST:\n")
-            for contact in contacts:
-                summary.append(f"{contact.name} - {contact.phone} ({contact.email or 'No email'})\n")
+            summary.append("COMPLETE CONTACT LIST:\n")
+            for i, contact in enumerate(contacts, 1):
+                summary.append(f"CONTACT_{i:03d}: {contact.name}\n")
+                summary.append(f"  Phone: {contact.phone}\n")
+                summary.append(f"  Email: {contact.email or 'No email'}\n")
+                summary.append(f"  Notes: {contact.notes or 'No notes'}\n")
+                summary.append("\n")
         
         summary.append("\n")
         
