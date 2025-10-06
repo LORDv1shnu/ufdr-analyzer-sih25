@@ -13,7 +13,6 @@ Advanced AI-powered forensic investigation toolkit for law enforcement agencies,
 <div align="center">
 
 [![SIH 2025](https://img.shields.io/badge/SIH%202025-Problem%20Statement%20SIH25198-orange)](https://sih.gov.in/)
-[![MHA](https://img.shields.io/badge/Ministry-Home%20Affairs-blue)](https://www.mha.gov.in/)
 [![Category](https://img.shields.io/badge/Category-Software%20Development-green)]()
 [![Theme](https://img.shields.io/badge/Theme-Smart%20Automation-red)]()
 
@@ -26,11 +25,7 @@ Advanced AI-powered forensic investigation toolkit for law enforcement agencies,
 
 UFDR AI Analyzer is an intelligent forensic investigation toolkit that processes Universal Forensic Data Reports (UFDR) and provides AI-powered analysis for digital evidence examination. Built for law enforcement agencies, cybersecurity professionals, and digital forensics investigators.
 
-## 🚀 Live Demo & Screenshots
-
-![UFDR Analyzer Demo](https://img.shields.io/badge/Demo-Live-brightgreen)
-
-### 📸 Application Screenshots
+##  Application Screenshots
 
 <div align="center">
 
