@@ -213,8 +213,8 @@ class UFDRInterface:
             st.error(f"Error searching messages: {e}")
             return []
     
-    def comprehensive_word_search(self, search_term: str) -> Dict[str, List[Dict]]:
-        """Comprehensive word search across all data types"""
+    def comprehensive_word_search(self, search_term: str, case_sensitive: bool = False, exact_match: bool = False) -> Dict[str, List[Dict]]:
+        """Comprehensive word search across all data types with enhanced options"""
         if not self.engine:
             return {"messages": [], "calls": [], "contacts": [], "media": []}
         
@@ -225,7 +225,28 @@ class UFDRInterface:
             "media": []
         }
         
-        search_lower = search_term.lower()
+        # Prepare search term based on options
+        if case_sensitive:
+            search_term_to_use = search_term
+        else:
+            search_term_to_use = search_term.lower()
+        
+        def matches_criteria(text: str, search_term: str, case_sensitive: bool, exact_match: bool) -> bool:
+            """Check if text matches search criteria"""
+            if not text:
+                return False
+            
+            if not case_sensitive:
+                text = text.lower()
+                search_term = search_term.lower()
+            
+            if exact_match:
+                # Split into words and check for exact word match
+                words = text.split()
+                return search_term in words
+            else:
+                # Partial match (substring)
+                return search_term in text
         
         try:
             with Session(self.engine) as session:
@@ -233,13 +254,13 @@ class UFDRInterface:
                 messages = session.exec(select(Message)).all()
                 for msg in messages:
                     found_in = []
-                    if msg.body and search_lower in msg.body.lower():
+                    if matches_criteria(msg.body, search_term, case_sensitive, exact_match):
                         found_in.append("body")
-                    if msg.sender and search_lower in msg.sender.lower():
+                    if matches_criteria(msg.sender, search_term, case_sensitive, exact_match):
                         found_in.append("sender")
-                    if msg.receiver and search_lower in msg.receiver.lower():
+                    if matches_criteria(msg.receiver, search_term, case_sensitive, exact_match):
                         found_in.append("receiver")
-                    if msg.ai_summary and search_lower in msg.ai_summary.lower():
+                    if matches_criteria(msg.ai_summary, search_term, case_sensitive, exact_match):
                         found_in.append("ai_summary")
                     
                     if found_in:
@@ -258,11 +279,11 @@ class UFDRInterface:
                 calls = session.exec(select(Call)).all()
                 for call in calls:
                     found_in = []
-                    if call.caller and search_lower in call.caller.lower():
+                    if matches_criteria(call.caller, search_term, case_sensitive, exact_match):
                         found_in.append("caller")
-                    if call.callee and search_lower in call.callee.lower():
+                    if matches_criteria(call.callee, search_term, case_sensitive, exact_match):
                         found_in.append("callee")
-                    if call.type and search_lower in call.type.lower():
+                    if matches_criteria(call.type, search_term, case_sensitive, exact_match):
                         found_in.append("type")
                     
                     if found_in:
@@ -281,13 +302,13 @@ class UFDRInterface:
                 contacts = session.exec(select(Contact)).all()
                 for contact in contacts:
                     found_in = []
-                    if contact.name and search_lower in contact.name.lower():
+                    if matches_criteria(contact.name, search_term, case_sensitive, exact_match):
                         found_in.append("name")
-                    if contact.phone and search_lower in contact.phone.lower():
+                    if matches_criteria(contact.phone, search_term, case_sensitive, exact_match):
                         found_in.append("phone")
-                    if contact.email and search_lower in contact.email.lower():
+                    if matches_criteria(contact.email, search_term, case_sensitive, exact_match):
                         found_in.append("email")
-                    if contact.notes and search_lower in contact.notes.lower():
+                    if matches_criteria(contact.notes, search_term, case_sensitive, exact_match):
                         found_in.append("notes")
                     
                     if found_in:
@@ -304,15 +325,15 @@ class UFDRInterface:
                 media_files = session.exec(select(MediaFile)).all()
                 for media in media_files:
                     found_in = []
-                    if media.filename and search_lower in media.filename.lower():
+                    if matches_criteria(media.filename, search_term, case_sensitive, exact_match):
                         found_in.append("filename")
-                    if media.ai_description and search_lower in media.ai_description.lower():
+                    if matches_criteria(media.ai_description, search_term, case_sensitive, exact_match):
                         found_in.append("ai_description")
-                    if media.contains_text and search_lower in media.contains_text.lower():
+                    if matches_criteria(media.contains_text, search_term, case_sensitive, exact_match):
                         found_in.append("contains_text")
-                    if media.detected_objects and search_lower in media.detected_objects.lower():
+                    if matches_criteria(media.detected_objects, search_term, case_sensitive, exact_match):
                         found_in.append("detected_objects")
-                    if media.tags and search_lower in media.tags.lower():
+                    if matches_criteria(media.tags, search_term, case_sensitive, exact_match):
                         found_in.append("tags")
                     
                     if found_in:
@@ -768,25 +789,56 @@ def render_word_search_tab(interface):
         """, unsafe_allow_html=True)
         return
     
-    # Search interface
-    col1, col2 = st.columns([3, 1])
+    # Search interface with improved layout
+    col1, col2, col3 = st.columns([4, 1, 1])
     
     with col1:
         search_term = st.text_input(
             "🔍 Enter search term:",
-            placeholder="e.g., drugs, suspicious, phone numbers, names, etc.",
-            help="Search across all messages, calls, contacts, and media files"
+            placeholder="e.g., cash, drugs, suspicious, phone numbers, names, etc.",
+            help="Search across all messages, calls, contacts, and media files",
+            key="word_search_input"
         )
     
     with col2:
-        case_sensitive = st.checkbox("Case Sensitive", value=False)
-        exact_match = st.checkbox("Exact Match", value=False)
+        case_sensitive = st.checkbox("Case Sensitive", value=False, help="Match exact case of letters")
+        exact_match = st.checkbox("Exact Match", value=False, help="Match whole words only")
+        
+    with col3:
+        st.write("")  # Spacing
+        if st.button("🗑️ Clear", help="Clear search results"):
+            st.session_state.word_search_input = ""
+            st.rerun()
+    
+    # Quick search buttons
+    st.markdown("### 💡 Quick Search")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        if st.button("💰 Cash/Money", help="Search for financial terms"):
+            st.session_state.word_search_input = "cash"
+            st.rerun()
+    with col2:
+        if st.button("🌿 Drugs", help="Search for drug-related content"):
+            st.session_state.word_search_input = "weed"
+            st.rerun()
+    with col3:
+        if st.button("🆔 Fake IDs", help="Search for identity fraud"):
+            st.session_state.word_search_input = "fake"
+            st.rerun()
+    with col4:
+        if st.button("📱 Phone Numbers", help="Search for phone numbers"):
+            st.session_state.word_search_input = "+919"
+            st.rerun()
+    with col5:
+        if st.button("⚠️ Suspicious", help="Search for suspicious activities"):
+            st.session_state.word_search_input = "suspicious"
+            st.rerun()
     
     if search_term and len(search_term.strip()) >= 2:
         # Show search progress
         with st.spinner(f"🔍 Searching for '{search_term}' across all UFDR data..."):
             # Perform comprehensive search
-            results = interface.comprehensive_word_search(search_term.strip())
+            results = interface.comprehensive_word_search(search_term.strip(), case_sensitive, exact_match)
             
             # Calculate totals
             total_results = (
@@ -796,21 +848,34 @@ def render_word_search_tab(interface):
                 len(results["media"])
             )
         
-        # Display results summary
+        # Display results summary with improved styling
         st.markdown("---")
         st.markdown("## 📊 Search Results Summary")
         
+        # Add search configuration info
+        config_info = []
+        if case_sensitive:
+            config_info.append("Case Sensitive")
+        if exact_match:
+            config_info.append("Exact Match")
+        if config_info:
+            st.info(f"🔧 Search Configuration: {', '.join(config_info)}")
+        
         col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
-            st.metric("🎯 Total Results", total_results)
+            st.metric("🎯 Total Results", total_results, delta=None)
         with col2:
-            st.metric("📩 Messages", len(results["messages"]))
+            msg_count = len(results["messages"])
+            st.metric("📩 Messages", msg_count, delta=None)
         with col3:
-            st.metric("📞 Calls", len(results["calls"]))
+            call_count = len(results["calls"])
+            st.metric("📞 Calls", call_count, delta=None)
         with col4:
-            st.metric("👥 Contacts", len(results["contacts"]))
+            contact_count = len(results["contacts"])
+            st.metric("👥 Contacts", contact_count, delta=None)
         with col5:
-            st.metric("🖼️ Media", len(results["media"]))
+            media_count = len(results["media"])
+            st.metric("🖼️ Media", media_count, delta=None)
         
         if total_results == 0:
             st.info(f"🔍 No results found for '{search_term}'. Try different search terms or check spelling.")
@@ -839,7 +904,7 @@ def render_word_search_tab(interface):
             
             for i, (tab, result_type) in enumerate(zip(tabs, result_tabs)):
                 with tab:
-                    display_search_results(results[result_type], result_type, search_term)
+                    display_search_results(results[result_type], result_type, search_term, case_sensitive)
     
     elif search_term and len(search_term.strip()) < 2:
         st.warning("⚠️ Please enter at least 2 characters to search.")
@@ -867,25 +932,57 @@ def render_word_search_tab(interface):
         - **Media**: Filename, AI description, OCR text, detected objects
         """)
 
-def display_search_results(results: List[Dict], result_type: str, search_term: str):
+def display_search_results(results: List[Dict], result_type: str, search_term: str, case_sensitive: bool = False):
     """Display search results for specific data type"""
     
     if result_type == "messages":
-        st.markdown(f"### 📩 Messages containing '{search_term}'")
+        st.markdown(f"### 📩 Messages containing '{search_term}' ({len(results)} found)")
         
-        for i, msg in enumerate(results):
-            with st.expander(f"Message {msg['id']} - {msg['sender']} → {msg['receiver']} ({msg['timestamp']})"):
-                # Highlight found fields
-                st.markdown(f"**Found in**: {', '.join(msg['found_in'])}")
-                st.markdown(f"**Risk Level**: {msg['risk_level']}")
+        # Add sorting options
+        sort_option = st.selectbox(
+            "Sort by:",
+            ["Timestamp (Latest First)", "Timestamp (Oldest First)", "Risk Level", "Sender"],
+            key=f"sort_messages_{search_term}"
+        )
+        
+        # Sort results based on selection
+        if sort_option == "Timestamp (Latest First)":
+            results = sorted(results, key=lambda x: x['timestamp'], reverse=True)
+        elif sort_option == "Timestamp (Oldest First)":
+            results = sorted(results, key=lambda x: x['timestamp'])
+        elif sort_option == "Risk Level":
+            risk_order = {"critical": 4, "high": 3, "medium": 2, "low": 1, "unknown": 0}
+            results = sorted(results, key=lambda x: risk_order.get(x['risk_level'], 0), reverse=True)
+        elif sort_option == "Sender":
+            results = sorted(results, key=lambda x: x['sender'] or "")
+        
+        for i, msg in enumerate(results, 1):
+            # Create a more informative title
+            risk_emoji = {"critical": "🚨", "high": "⚠️", "medium": "⚡", "low": "📝", "unknown": "❓"}
+            title = f"{risk_emoji.get(msg['risk_level'], '📝')} Message {msg['id']} - {msg['sender']} → {msg['receiver']}"
+            
+            with st.expander(f"{title} ({msg['timestamp']})"):
+                # Create columns for better layout
+                col1, col2 = st.columns([2, 1])
                 
-                if msg['body']:
-                    st.markdown("**Message Body:**")
-                    highlighted_body = highlight_search_term(msg['body'], search_term)
-                    st.markdown(highlighted_body, unsafe_allow_html=True)
+                with col1:
+                    st.markdown(f"**Found in**: {', '.join(msg['found_in'])}")
+                    if msg['body']:
+                        st.markdown("**Message Content:**")
+                        highlighted_body = highlight_search_term(msg['body'], search_term, case_sensitive)
+                        st.markdown(f"<div style='background-color: #f8f9fa; padding: 10px; border-radius: 5px;'>{highlighted_body}</div>", unsafe_allow_html=True)
+                
+                with col2:
+                    st.markdown(f"**Risk Level**: {msg['risk_level']}")
+                    st.markdown(f"**Timestamp**: {msg['timestamp']}")
+                    # Add copy button for message content
+                    if msg['body']:
+                        if st.button(f"📋 Copy Text", key=f"copy_msg_{msg['id']}"):
+                            st.write(f"```\n{msg['body']}\n```")
                 
                 if msg['ai_summary']:
-                    st.markdown(f"**AI Summary**: {msg['ai_summary']}")
+                    st.markdown("**AI Analysis:**")
+                    st.markdown(f"<div style='background-color: #e8f4f8; padding: 8px; border-radius: 3px; font-style: italic;'>{msg['ai_summary']}</div>", unsafe_allow_html=True)
     
     elif result_type == "calls":
         st.markdown(f"### 📞 Calls containing '{search_term}'")
@@ -926,32 +1023,34 @@ def display_search_results(results: List[Dict], result_type: str, search_term: s
                 
                 if media['contains_text']:
                     st.markdown("**Text Content (OCR):**")
-                    highlighted_text = highlight_search_term(media['contains_text'], search_term)
+                    highlighted_text = highlight_search_term(media['contains_text'], search_term, case_sensitive)
                     st.markdown(highlighted_text, unsafe_allow_html=True)
 
-def highlight_search_term(text: str, search_term: str) -> str:
-    """Highlight search term in text"""
+def highlight_search_term(text: str, search_term: str, case_sensitive: bool = False) -> str:
+    """Highlight search term in text with improved logic"""
     if not text or not search_term:
         return text
     
-    # Simple highlighting with HTML
-    highlighted = text.replace(
-        search_term, 
-        f"<mark style='background-color: #ffff00; font-weight: bold;'>{search_term}</mark>"
-    )
+    import re
     
-    # Also highlight case-insensitive matches
-    if search_term.lower() != search_term:
-        highlighted = highlighted.replace(
-            search_term.lower(), 
-            f"<mark style='background-color: #ffff00; font-weight: bold;'>{search_term.lower()}</mark>"
-        )
+    # Escape special regex characters in search term
+    escaped_term = re.escape(search_term)
     
-    if search_term.upper() != search_term:
-        highlighted = highlighted.replace(
-            search_term.upper(), 
-            f"<mark style='background-color: #ffff00; font-weight: bold;'>{search_term.upper()}</mark>"
-        )
+    # Create regex pattern based on case sensitivity
+    if case_sensitive:
+        pattern = f"({escaped_term})"
+    else:
+        pattern = f"({escaped_term})"
+        flags = re.IGNORECASE
+    
+    # Use regex to find and replace all occurrences
+    def replacement(match):
+        return f"<mark style='background-color: #ffff00; font-weight: bold; color: #000;'>{match.group(1)}</mark>"
+    
+    if case_sensitive:
+        highlighted = re.sub(pattern, replacement, text)
+    else:
+        highlighted = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
     
     return highlighted
 
