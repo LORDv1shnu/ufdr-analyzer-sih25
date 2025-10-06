@@ -1,4 +1,4 @@
-<img src="screenshots/sih.png" alt="Smart India Hackathon 2025" width="200" align="left" style="margin-right: 20px; margin-bottom: 10px;"/>
+<img src="screenshots/sih.png" alt="Smart India Hackathon 2025" width="140" align="left" style="margin-right: 15px; margin-bottom: 8px;"/>
 
 # 🇮🇳 Smart India Hackathon 2025 | UFDR AI Analyzer
 
