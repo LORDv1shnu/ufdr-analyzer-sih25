@@ -1,11 +1,33 @@
-# 🔍 UFDR AI Analyzer - SIH 2025
+# 🇮🇳 Smart India Hackathon 2025 | UFDR AI Analyzer
+
+<div align="center">
+
+## 🏆 **SMART INDIA HACKATHON 2025**
+### **🏢 Ministry of Home Affairs (MHA)**
+
+**🔍 AI-based UFDR (Universal Forensic Extraction Device Report) Analysis Tool**
+
+---
+
+[![SIH 2025](https://img.shields.io/badge/SIH%202025-Problem%20Statement%20SIH25198-orange)](https://sih.gov.in/)
+[![MHA](https://img.shields.io/badge/Ministry-Home%20Affairs-blue)](https://www.mha.gov.in/)
+[![Category](https://img.shields.io/badge/Category-Software%20Development-green)]()
+[![Theme](https://img.shields.io/badge/Theme-Smart%20Automation-red)]()
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io/)
 [![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini-blue.svg)](https://ai.google.dev/)
 
-**Smart India Hackathon 2025 - Digital Forensics Solution**
+---
+
+**📋 Problem Statement ID:** `SIH25198`  
+**📅 Submission Deadline:** 15 October 2025  
+**🎯 Submitted Ideas:** 51 out of 500 selected  
+
+</div>
+
+**🚨 Official SIH 2025 Solution for Law Enforcement**
 
 UFDR AI Analyzer is an intelligent forensic investigation toolkit that processes Universal Forensic Data Reports (UFDR) and provides AI-powered analysis for digital evidence examination. Built for law enforcement agencies, cybersecurity professionals, and digital forensics investigators.
 
@@ -265,10 +287,23 @@ Your UFDR AI Analyzer is now fully set up and ready for forensic investigation w
 - **Local processing** - data stays on your machine
 - **Offline capable** - works without AI features
 
-## 🎓 Smart India Hackathon 2025
+## 🎓 Official Smart India Hackathon 2025 Project
 
-**Problem Statement:** Digital Forensics & AI-Powered Investigation Tools  
-**Tech Stack:** Python, Streamlit, Google Gemini AI, SQLModel
+<div align="center">
+
+### 🏛️ **Ministry of Home Affairs (MHA)**
+**Problem Statement ID:** `SIH25198`  
+**Category:** Software Development | **Theme:** Smart Automation
+
+---
+
+**🎯 Mission:** Develop AI-based UFDR Analysis Tool for enhanced digital forensic capabilities  
+**🎖️ Status:** Selected among 51 ideas out of 500 submissions  
+**📅 Deadline:** 15 October 2025  
+
+**💻 Tech Stack:** Python • Streamlit • Google Gemini AI • SQLModel
+
+</div>
 
 ## 📄 License
 
@@ -281,4 +316,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Made with ❤️ for Smart India Hackathon 2025**
+<div align="center">
+
+**🇮🇳 Made with ❤️ for Smart India Hackathon 2025**  
+**Empowering Digital Justice | Ministry of Home Affairs**
+
+</div>
