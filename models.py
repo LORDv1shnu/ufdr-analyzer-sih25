@@ -1,6 +1,15 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, create_engine
 from typing import Optional
 import sqlalchemy
+
+# Ensure we only create the metadata once
+_engine = None
+
+def get_engine():
+    global _engine
+    if _engine is None:
+        _engine = create_engine("sqlite:///ufdr.db", echo=False)
+    return _engine
 
 class Contact(SQLModel, table=True, extend_existing=True):
     id: Optional[int] = Field(default=None, primary_key=True)

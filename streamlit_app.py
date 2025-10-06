@@ -9,9 +9,9 @@ import time
 import pandas as pd
 import json
 from typing import Optional, List, Dict, Any
-from sqlmodel import Session, select, create_engine
+from sqlmodel import Session, select
 from ai_analyzer import AIAnalyzer
-from models import Message, Contact, Call, MediaFile
+from models import Message, Contact, Call, MediaFile, get_engine
 from datetime import datetime
 
 class UFDRInterface:
@@ -25,7 +25,7 @@ class UFDRInterface:
         
         # Initialize database connection
         if os.path.exists(self.db_file):
-            self.engine = create_engine(f"sqlite:///{self.db_file}", echo=False)
+            self.engine = get_engine()
     
     def load_analysis_report(self) -> Optional[str]:
         """Load the pre-generated analysis report"""
@@ -396,16 +396,17 @@ def render_ai_query_tab(interface):
             "What immediate actions should investigators take?"
         ]
         
+        # Initialize query state if not exists
+        if 'quick_query' not in st.session_state:
+            st.session_state.quick_query = ""
+        
         for i, query in enumerate(sample_queries):
             if st.button(f"🔍 {query[:30]}...", key=f"sample_query_{i}", help=query):
-                st.session_state.selected_query = query
+                st.session_state.quick_query = query
+                st.rerun()
     
     # Query input
-    if 'selected_query' in st.session_state:
-        default_query = st.session_state.selected_query
-        del st.session_state.selected_query
-    else:
-        default_query = ""
+    default_query = st.session_state.get('quick_query', "")
     
     user_query = st.text_area(
         "Enter your investigation query:",
@@ -776,8 +777,13 @@ def render_media_explorer(interface):
 
 def render_word_search_tab(interface):
     """Render the word-based search tab"""
-    st.markdown("## 🔍 Word-Based Search Engine")
-    st.markdown("**Offline search through all UFDR data - No AI required**")
+    st.markdown("## 🔍 Database Search Engine")
+    st.markdown("**🗄️ Direct search through ingested UFDR database - No AI required**")
+    
+    # Database info
+    stats = interface.get_database_stats()
+    if stats:
+        st.info(f"🎯 **Searching in Database**: {stats.get('messages', 0)} messages, {stats.get('calls', 0)} calls, {stats.get('contacts', 0)} contacts, {stats.get('media_files', 0)} media files")
     
     if not interface.engine:
         st.markdown("""
@@ -796,8 +802,7 @@ def render_word_search_tab(interface):
         search_term = st.text_input(
             "🔍 Enter search term:",
             placeholder="e.g., cash, drugs, suspicious, phone numbers, names, etc.",
-            help="Search across all messages, calls, contacts, and media files",
-            key="word_search_input"
+            help="Search across all messages, calls, contacts, and media files"
         )
     
     with col2:
@@ -806,33 +811,46 @@ def render_word_search_tab(interface):
         
     with col3:
         st.write("")  # Spacing
-        if st.button("🗑️ Clear", help="Clear search results"):
-            st.session_state.word_search_input = ""
-            st.rerun()
     
-    # Quick search buttons
-    st.markdown("### 💡 Quick Search")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        if st.button("💰 Cash/Money", help="Search for financial terms"):
-            st.session_state.word_search_input = "cash"
-            st.rerun()
-    with col2:
-        if st.button("🌿 Drugs", help="Search for drug-related content"):
-            st.session_state.word_search_input = "weed"
-            st.rerun()
-    with col3:
-        if st.button("🆔 Fake IDs", help="Search for identity fraud"):
-            st.session_state.word_search_input = "fake"
-            st.rerun()
-    with col4:
-        if st.button("📱 Phone Numbers", help="Search for phone numbers"):
-            st.session_state.word_search_input = "+919"
-            st.rerun()
-    with col5:
-        if st.button("⚠️ Suspicious", help="Search for suspicious activities"):
-            st.session_state.word_search_input = "suspicious"
-            st.rerun()
+    # Quick search suggestions
+    st.markdown("### 💡 Quick Search Suggestions")
+    st.markdown("**Popular search terms**: `cash`, `weed`, `fake`, `+919`, `suspicious`, `meetup`, `burner`, `USB`")
+    
+    # Debug section to verify database search
+    with st.expander("🔧 Debug: Verify Database Search", expanded=False):
+        if st.button("🧪 Test Database Connection"):
+            try:
+                import sqlite3
+                conn = sqlite3.connect('ufdr.db')
+                cursor = conn.cursor()
+                
+                # Get sample data directly from database
+                cursor.execute('SELECT COUNT(*) FROM message WHERE body LIKE ?', ('%cash%',))
+                cash_db_count = cursor.fetchone()[0]
+                
+                cursor.execute('SELECT body FROM message WHERE body LIKE ? LIMIT 2', ('%cash%',))
+                samples = cursor.fetchall()
+                
+                conn.close()
+                
+                # Test our search function
+                results = interface.comprehensive_word_search('cash')
+                search_count = len(results['messages'])
+                
+                st.success(f"✅ **Database Direct Query**: {cash_db_count} messages contain 'cash'")
+                st.success(f"✅ **Search Function**: {search_count} messages found")
+                
+                if cash_db_count == search_count:
+                    st.success("🎉 **CONFIRMED**: Search function uses database correctly!")
+                else:
+                    st.warning("⚠️ Mismatch detected - investigating needed")
+                
+                st.write("**Sample database records:**")
+                for i, (body,) in enumerate(samples, 1):
+                    st.write(f"{i}. {body}")
+                    
+            except Exception as e:
+                st.error(f"Debug test failed: {e}")
     
     if search_term and len(search_term.strip()) >= 2:
         # Show search progress
@@ -878,7 +896,14 @@ def render_word_search_tab(interface):
             st.metric("🖼️ Media", media_count, delta=None)
         
         if total_results == 0:
-            st.info(f"🔍 No results found for '{search_term}'. Try different search terms or check spelling.")
+            st.warning(f"🔍 No results found for '{search_term}'")
+            st.markdown("""
+            **Suggestions:**
+            - Check spelling and try different terms
+            - Use simpler keywords (e.g., 'cash' instead of 'money transactions')
+            - Try partial matches (e.g., 'drug' to find 'drugs')
+            - Use the quick search buttons above for common terms
+            """)
             return
         
         # Results display with tabs
@@ -918,18 +943,26 @@ def render_word_search_tab(interface):
         - **Field-Specific Results**: Shows exactly where the term was found
         - **Offline Operation**: No internet or AI required
         
-        **Search Examples:**
-        - `drugs` - Find drug-related communications
-        - `+919` - Find Indian phone numbers
-        - `Inspector` - Find law enforcement contacts
-        - `suspicious` - Find flagged content
-        - `meetup` - Find meeting arrangements
+        **Search Examples (Database Fields):**
+        - `cash` - Find financial transactions in message bodies
+        - `drugs` or `weed` - Find drug-related communications in messages
+        - `fake` - Find identity fraud mentions in message content
+        - `+919` - Find Indian phone numbers in messages/calls/contacts
+        - `Inspector` - Find law enforcement contacts by name
+        - `suspicious` - Find flagged content in message bodies
+        - `meetup` - Find meeting arrangements in message content
+        - `USB` - Find data security discussions in messages
+        - `burner` - Find tracking evasion attempts in messages
         
-        **Data Sources Searched:**
-        - **Messages**: Body, sender, receiver, AI summaries
-        - **Calls**: Caller, callee, call type
-        - **Contacts**: Name, phone, email, notes
-        - **Media**: Filename, AI description, OCR text, detected objects
+        **Note**: Search looks through actual database records, not analysis files!
+        
+        **Database Tables/Fields Searched:**
+        - **Messages Table**: body, sender, receiver, ai_summary fields
+        - **Calls Table**: caller, callee, type fields  
+        - **Contacts Table**: name, phone, email, notes fields
+        - **Media Table**: filename, ai_description, contains_text, detected_objects fields
+        
+        **🔍 This searches the SQLite database (ufdr.db), NOT the analysis.txt file!**
         """)
 
 def display_search_results(results: List[Dict], result_type: str, search_term: str, case_sensitive: bool = False):
@@ -957,32 +990,42 @@ def display_search_results(results: List[Dict], result_type: str, search_term: s
             results = sorted(results, key=lambda x: x['sender'] or "")
         
         for i, msg in enumerate(results, 1):
-            # Create a more informative title
+            # Create a more informative title with color coding
             risk_emoji = {"critical": "🚨", "high": "⚠️", "medium": "⚡", "low": "📝", "unknown": "❓"}
-            title = f"{risk_emoji.get(msg['risk_level'], '📝')} Message {msg['id']} - {msg['sender']} → {msg['receiver']}"
+            risk_colors = {"critical": "#dc3545", "high": "#fd7e14", "medium": "#ffc107", "low": "#28a745", "unknown": "#6c757d"}
             
-            with st.expander(f"{title} ({msg['timestamp']})"):
+            title = f"{risk_emoji.get(msg['risk_level'], '📝')} Message {msg['id']}"
+            subtitle = f"{msg['sender']} → {msg['receiver']}"
+            risk_color = risk_colors.get(msg['risk_level'], '#6c757d')
+            
+            with st.expander(f"{title} | {subtitle} | {msg['timestamp']}", expanded=False):
+                # Risk level indicator
+                st.markdown(f"<div style='display: inline-block; background-color: {risk_color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-bottom: 10px;'>Risk: {msg['risk_level'].upper()}</div>", unsafe_allow_html=True)
+                
                 # Create columns for better layout
-                col1, col2 = st.columns([2, 1])
+                col1, col2 = st.columns([3, 1])
                 
                 with col1:
                     st.markdown(f"**Found in**: {', '.join(msg['found_in'])}")
                     if msg['body']:
                         st.markdown("**Message Content:**")
                         highlighted_body = highlight_search_term(msg['body'], search_term, case_sensitive)
-                        st.markdown(f"<div style='background-color: #f8f9fa; padding: 10px; border-radius: 5px;'>{highlighted_body}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='message-content'>{highlighted_body}</div>", unsafe_allow_html=True)
                 
                 with col2:
-                    st.markdown(f"**Risk Level**: {msg['risk_level']}")
-                    st.markdown(f"**Timestamp**: {msg['timestamp']}")
+                    st.markdown(f"**Timestamp**: {msg['timestamp']}")                    
                     # Add copy button for message content
                     if msg['body']:
-                        if st.button(f"📋 Copy Text", key=f"copy_msg_{msg['id']}"):
-                            st.write(f"```\n{msg['body']}\n```")
+                        if st.button(f"📋 Copy", key=f"copy_msg_{msg['id']}", help="Click to show copyable text"):
+                            st.code(msg['body'], language=None)
+                    
+                    # Add message statistics
+                    if msg['body']:
+                        st.markdown(f"**Length**: {len(msg['body'])} chars")
                 
                 if msg['ai_summary']:
                     st.markdown("**AI Analysis:**")
-                    st.markdown(f"<div style='background-color: #e8f4f8; padding: 8px; border-radius: 3px; font-style: italic;'>{msg['ai_summary']}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div class='ai-analysis'>{msg['ai_summary']}</div>", unsafe_allow_html=True)
     
     elif result_type == "calls":
         st.markdown(f"### 📞 Calls containing '{search_term}'")
@@ -1045,7 +1088,7 @@ def highlight_search_term(text: str, search_term: str, case_sensitive: bool = Fa
     
     # Use regex to find and replace all occurrences
     def replacement(match):
-        return f"<mark style='background-color: #ffff00; font-weight: bold; color: #000;'>{match.group(1)}</mark>"
+        return f"<mark style='background-color: #ffd700; font-weight: bold; color: #000; padding: 2px 4px; border-radius: 3px;'>{match.group(1)}</mark>"
     
     if case_sensitive:
         highlighted = re.sub(pattern, replacement, text)
@@ -1074,45 +1117,65 @@ def main():
         margin-bottom: 2rem;
     }
     .query-box {
-        background-color: #f0f8ff;
+        background-color: rgba(31, 78, 121, 0.1);
         padding: 1rem;
         border-radius: 10px;
         border-left: 5px solid #1f4e79;
         margin: 1rem 0;
     }
     .status-box {
-        background-color: #e8f5e8;
+        background-color: rgba(40, 167, 69, 0.1);
         padding: 1rem;
         border-radius: 8px;
         border-left: 4px solid #28a745;
         margin: 1rem 0;
     }
     .warning-box {
-        background-color: #fff3cd;
+        background-color: rgba(255, 193, 7, 0.1);
         padding: 1rem;
         border-radius: 8px;
         border-left: 4px solid #ffc107;
         margin: 1rem 0;
     }
     .error-box {
-        background-color: #f8d7da;
+        background-color: rgba(220, 53, 69, 0.1);
         padding: 1rem;
         border-radius: 8px;
         border-left: 4px solid #dc3545;
         margin: 1rem 0;
     }
     .metric-card {
-        background-color: #f8f9fa;
+        background-color: rgba(108, 117, 125, 0.1);
         padding: 1rem;
         border-radius: 8px;
-        border: 1px solid #dee2e6;
+        border: 1px solid rgba(108, 117, 125, 0.3);
         text-align: center;
+    }
+    .message-content {
+        background-color: rgba(100, 149, 237, 0.1);
+        padding: 10px;
+        border-radius: 5px;
+        border-left: 3px solid #6495ED;
+        margin: 8px 0;
+    }
+    .ai-analysis {
+        background-color: rgba(40, 167, 69, 0.1);
+        padding: 8px;
+        border-radius: 3px;
+        border-left: 3px solid #28a745;
+        font-style: italic;
+        margin: 8px 0;
     }
     </style>
     """, unsafe_allow_html=True)
     
-    # Main header
-    st.markdown('<h1 class="main-header">🔍 UFDR Investigation & Data Explorer</h1>', unsafe_allow_html=True)
+    # Main header with improved styling
+    st.markdown('''
+    <div style="text-align: center; padding: 20px 0; background: linear-gradient(90deg, #1f4e79, #4a90e2); border-radius: 10px; margin-bottom: 20px;">
+        <h1 style="color: white; margin: 0; font-size: 2.5rem;">🔍 UFDR Investigation & Data Explorer</h1>
+        <p style="color: #e0e0e0; margin: 10px 0 0 0; font-size: 1.1rem;">Comprehensive Digital Forensic Analysis System</p>
+    </div>
+    ''', unsafe_allow_html=True)
     
     # Initialize interface
     interface = UFDRInterface()

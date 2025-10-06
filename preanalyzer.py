@@ -7,8 +7,8 @@ import sys
 import json
 from datetime import datetime
 from typing import Dict, List, Any
-from sqlmodel import Session, select, create_engine
-from models import Message, Contact, Call, MediaFile
+from sqlmodel import Session, select
+from models import Message, Contact, Call, MediaFile, get_engine
 from ai_analyzer import AIAnalyzer
 
 class UFDRPreAnalyzer:
@@ -19,7 +19,7 @@ class UFDRPreAnalyzer:
     def __init__(self, analysis_file: str = "analysis.txt"):
         self.analysis_file = analysis_file
         self.ai_analyzer = AIAnalyzer()
-        self.engine = create_engine("sqlite:///ufdr.db", echo=False)
+        self.engine = get_engine()
         
     def run_complete_analysis(self, skip_images: bool = False):
         """

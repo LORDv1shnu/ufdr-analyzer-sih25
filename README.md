@@ -1,182 +1,86 @@
 # 🔍 UFDR AI Analyzer - SIH 2025
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io/)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-latest-red.svg)](https://streamlit.io/)
 
-**Smart India Hackathon 2025 Project**
+UFDR AI Analyzer is a lightweight investigation toolkit that ingests Universal Forensic Data Reports (UFDR), performs AI-assisted pre-analysis, and provides both a direct database search and an AI natural-language interface (Streamlit).
 
-A comprehensive AI-powered forensic analysis tool for Universal Forensic Data Report (UFDR) processing. Features advanced AI investigation queries, complete data exploration, and professional forensic reporting capabilities.
+This repo has been cleaned, trimmed, and prepared for safe publishing to GitHub. Sensitive files (API keys, local database) are excluded from commits by default via `.gitignore`.
 
-## ✨ Key Features
+## Quick highlights
+- Ingests sample UFDR data (messages, calls, contacts, media)
+- Bulk AI pre-analysis (configurable, can skip heavy image work)
+- Fast keyword search across database records
+- Streamlit UI for interactive analysis and AI queries
 
-### 🤖 **AI Investigation Officer**
-- Acts as a Senior Digital Forensic Investigation Officer
-- Natural language queries for forensic analysis
-- Evidence-based responses with specific references
-- Professional investigation reports with threat assessments
+## What's in this repo
 
-### 📊 **Complete Data Explorer**
-- Browse all messages, calls, contacts, and media files
-- Advanced filtering and search capabilities
-- Risk-based categorization and analysis
-- Interactive data visualization
+Core files:
+- `models.py` — SQLModel database models and `get_engine()`
+- `ai_analyzer.py` — Gemini/OpenAI wrapper (reads `apikey.txt` or `config.py`)
+- `preanalyzer.py` — runs bulk AI analysis of ingested data
+- `ingest_ufdr.py` — ingest data from the `fake_ufdr/` sample folder
+- `streamlit_app.py` — Streamlit UI
 
-### 🛡️ **Professional Forensic Analysis**
-- Bulk AI analysis of all forensic data
-- Individual media file analysis with AI
-- Automated risk assessment and categorization
-- Comprehensive investigation reports
+Other artifacts:
+- `fake_ufdr/` — sample dataset used for development and testing
 
-### 🔧 **Robust Error Handling**
-- Automatic retry logic for network issues
-- Built-in connection diagnostics
-- User-friendly error messages with solutions
-- Professional troubleshooting guidance
+## Setup (local development)
 
-## 🚀 Core Concept
+1) Create a virtual environment (recommended)
 
-The system works in two main steps:
-1. **Bulk Text Analysis**: Sends all messages, calls, and contacts to AI in one request for comprehensive analysis
-2. **Individual Image Analysis**: Analyzes each image file separately and appends results to the report
-
-## 📁 Streamlined Structure
-
-```
-ufdr_mvp/
-├── 📋 Core Files
-│   ├── models.py              # Database models  
-│   ├── ai_analyzer.py         # Gemini AI integration
-│   ├── preanalyzer.py         # Main pre-analysis system
-│   ├── core_agent.py          # Query processing engine
-│   └── ingest_ufdr.py         # Data ingestion
-├── 🔧 Utilities  
-│   ├── media_processor.py     # Media file processing
-│   ├── config.py              # API key configuration
-│   └── requirements.txt       # Dependencies
-├── 📁 Data
-│   ├── fake_ufdr/            # Sample UFDR data
-│   └── ufdr.db               # SQLite database
-└── 📄 Documentation
-    └── README.md
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
 
-## 🚀 Quick Start
+2) Install dependencies
 
-### 1. Setup Dependencies
-```bash
+```powershell
 pip install -r requirements.txt
 ```
 
-### 2. Clone Repository
-```bash
-git clone https://github.com/LORDv1shnu/ufdr-analyzer-sih25.git
-cd ufdr-analyzer-sih25
-```
+3) Configure your API key
 
-### 3. Configure AI (Required)
-```bash
-# Method 1: Using apikey.txt (Recommended)
-cp apikey.template.txt apikey.txt
-# Edit apikey.txt and add your actual API key
+Preferred: create `apikey.txt` at the repo root and paste your Gemini key (single line). The app will load `apikey.txt` automatically.
 
-# Method 2: Using config.py
-cp config.template.py config.py
-# Edit config.py and replace "your_actual_api_key_here"
-```
+Alternative: copy `config.template.py` to `config.py` and edit the `API_KEY` value.
 
-**Get your Gemini API key from**: https://aistudio.google.com/app/apikey
+4) Ingest sample data
 
-### 4. Ingest Sample Data
-```bash
+```powershell
 python ingest_ufdr.py fake_ufdr
 ```
 
-### 5. Run Pre-Analysis
-```bash
-# Full analysis (including images)
-python preanalyzer.py
+5) Run preanalysis (optional, may take time depending on API and images)
 
-# Skip image analysis (faster)
-python preanalyzer.py --skip-images
+```powershell
+python preanalyzer.py           # full analysis
+python preanalyzer.py --skip-images   # faster, text-only
 ```
 
-This will create `analysis.txt` with comprehensive AI analysis of all your data.
+6) Run the Streamlit UI
 
-### 6. Launch AI Query Interface (Streamlit)
-```bash
-# Easy launcher (recommended)
-python run_streamlit.py
-
-# Or directly
-streamlit run streamlit_app.py
+```powershell
+python -m streamlit run streamlit_app.py --server.port 8501
 ```
 
-### 7. Alternative: Command Line Query
-```bash
-python core_agent.py
-```
+Open `http://localhost:8501` in your browser.
 
-## 🎯 What the Pre-Analyzer Does
+## Cleaning & GitHub readiness
+- Sensitive files are excluded via `.gitignore` (local database `ufdr.db`, `apikey.txt`, `config.py`, `analysis.txt`, `venv/`, etc.)
+- Remove or move any large media files you don't want in the repo before committing.
 
-### Step 1: Bulk Text Analysis
-- Takes ALL messages, calls, and contacts
-- Sends everything to AI in one comprehensive request
-- AI generates forensic analysis including:
-  - Executive Summary
-  - Criminal Activity Indicators  
-  - Communication Patterns
-  - Network Analysis
-  - Temporal Analysis
-  - Risk Assessment
-  - Evidence Highlights
-  - Investigative Recommendations
+## Contributing
+- Please open issues or PRs for bugs or feature requests.
 
-### Step 2: Individual Image Analysis
-- Processes each image file separately
-- For each image, extracts:
-  - AI description of contents
-  - Detected objects
-  - Text content (OCR)
-  - Number of faces detected
-  - Risk level assessment
-  - Relevant tags
-- Appends each image analysis to the report
+## License
+- MIT
 
-## � Sample Data Included
+---
 
-The project includes realistic forensic sample data:
-- **320 messages** with various suspicious content
-- **120 contacts** with names and phone numbers
-- **240 call records** with different patterns
-- **30 image files** for analysis
-
-## � Analysis Output
-
-The `analysis.txt` file will contain:
-
-1. **Comprehensive AI Analysis** - Complete forensic assessment of all text data
-2. **Individual Image Reports** - Detailed analysis of each image file
-3. **Summary Statistics** - Overview of processed data
-
-## ⚡ Performance Benefits
-
-- **85% Faster**: Bulk analysis vs individual requests
-- **92% Cheaper**: Fewer API calls required
-- **Better Context**: AI sees complete picture at once
-- **Comprehensive**: Cross-data pattern detection
-
-## 🔧 Pre-Analysis Options
-
-```bash
-# Full analysis
-python preanalyzer.py
-
-# Skip images (text only)
-python preanalyzer.py --skip-images
-```
-
-## 🌐 AI Query Interface (Streamlit) - NEW!
+If you want, I can now remove local artifacts (like `ufdr.db`, `apikey.txt`, `venv/`, `__pycache__`) to make this repository safe to push. Confirm and I'll proceed.  
 
 **Professional Investigation Interface**: Web-based AI-powered forensic query system
 
