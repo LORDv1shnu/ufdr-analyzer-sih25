@@ -2,7 +2,8 @@
 
 <div align="center">
 
-## 🏆 **SMART INDIA HACKATHON 2025**
+<img src="screenshots/sih.png" alt="Smart India Hackathon 2025" width="400"/>
+
 ### **🏢 Ministry of Home Affairs (MHA)**
 
 **🔍 AI-based UFDR (Universal Forensic Extraction Device Report) Analysis Tool**
@@ -19,15 +20,9 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io/)
 [![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini-blue.svg)](https://ai.google.dev/)
 
----
-
-**📋 Problem Statement ID:** `SIH25198`  
-**📅 Submission Deadline:** 15 October 2025  
-**🎯 Submitted Ideas:** 51 out of 500 selected  
+**📋 Problem Statement ID:** `SIH25198`
 
 </div>
-
-**🚨 Official SIH 2025 Solution for Law Enforcement**
 
 UFDR AI Analyzer is an intelligent forensic investigation toolkit that processes Universal Forensic Data Reports (UFDR) and provides AI-powered analysis for digital evidence examination. Built for law enforcement agencies, cybersecurity professionals, and digital forensics investigators.
 
