@@ -1,0 +1,9 @@
+{
+  "device_name": "Samsung Galaxy S21",
+  "owner": "John Doe",
+  "extraction_date": "2025-10-06T10:00:00Z",
+  "total_contacts": 60,
+  "total_messages": 320,
+  "total_calls": 120,
+  "notes": "Synthetic sample UFDR report for SenseVision MVP. Contains a mix of benign and suspicious records for testing."
+}

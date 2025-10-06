@@ -1,0 +1,12 @@
+[
+  {
+    "timestamp": "2025-10-06T08:00:00",
+    "ssid": "Cafe_Free_WiFi",
+    "bssid": "22:33:44:55:66:77"
+  },
+  {
+    "timestamp": "2025-10-06T09:00:00",
+    "ssid": "Home_Network",
+    "bssid": "11:22:33:44:55:66"
+  }
+]
