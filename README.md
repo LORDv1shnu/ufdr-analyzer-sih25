@@ -1,14 +1,16 @@
+<img src="screenshots/sih.png" alt="Smart India Hackathon 2025" width="200" align="left" style="margin-right: 20px; margin-bottom: 10px;"/>
+
 # 🇮🇳 Smart India Hackathon 2025 | UFDR AI Analyzer
 
-<div align="center">
-
-<img src="screenshots/sih.png" alt="Smart India Hackathon 2025" width="400"/>
-
-### **🏢 Ministry of Home Affairs (MHA)**
+### **🏢 Ministry of Home Affairs (MHA) | Problem Statement `SIH25198`**
 
 **🔍 AI-based UFDR (Universal Forensic Extraction Device Report) Analysis Tool**
 
----
+Advanced AI-powered forensic investigation toolkit for law enforcement agencies, providing intelligent analysis of digital evidence from mobile devices and computers.
+
+<br clear="left"/>
+
+<div align="center">
 
 [![SIH 2025](https://img.shields.io/badge/SIH%202025-Problem%20Statement%20SIH25198-orange)](https://sih.gov.in/)
 [![MHA](https://img.shields.io/badge/Ministry-Home%20Affairs-blue)](https://www.mha.gov.in/)
@@ -19,8 +21,6 @@
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io/)
 [![Google Gemini](https://img.shields.io/badge/AI-Google%20Gemini-blue.svg)](https://ai.google.dev/)
-
-**📋 Problem Statement ID:** `SIH25198`
 
 </div>
 
