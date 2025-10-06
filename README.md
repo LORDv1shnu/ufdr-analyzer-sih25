@@ -1,6 +1,6 @@
 <img src="screenshots/sih.png" alt="Smart India Hackathon 2025" width="140" align="left" style="margin-right: 15px; margin-bottom: 8px;"/>
 
-# 🇮🇳 Smart India Hackathon 2025 | UFDR AI Analyzer
+# Smart India Hackathon 2025 | UFDR AI Analyzer
 
 ### **🏢 Ministry of Home Affairs (MHA) | Problem Statement `SIH25198`**
 
