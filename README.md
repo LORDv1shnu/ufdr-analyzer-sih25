@@ -243,313 +243,42 @@ Your UFDR AI Analyzer is now fully set up and ready for forensic investigation w
 - ✅ `query_result.png` - AI investigation query responses (176KB)
 - ✅ `file_explorer.png` - Evidence file browser and analysis (176KB)
 
-**Ready to commit and push to GitHub!** 🚀
+##  Usage Examples
 
-## 📁 Project Structure
-
+### 🔍 Database Search
 ```
-ufdr-analyzer-sih25/
-├── 📋 Core Components
-│   ├── streamlit_app.py      # Main web interface
-│   ├── models.py             # Database models (SQLModel)
-│   ├── ai_analyzer.py        # AI integration (Gemini)
-│   ├── preanalyzer.py        # Bulk analysis engine
-│   └── ingest_ufdr.py        # Data ingestion pipeline
-├── 📊 Sample Data
-│   └── fake_ufdr/            # Demo forensic dataset
-│       ├── messages/         # 320 sample messages
-│       ├── calls/            # 120 call records
-│       ├── contacts/         # 60 contacts
-│       └── media/            # Sample images
-├── 🔧 Configuration
-│   ├── requirements.txt      # Python dependencies
-│   ├── apikey.template.txt   # API key template
-│   └── config.template.py    # Configuration template
-└── 📄 Documentation
-    ├── README.md             # This file
-    └── LICENSE               # MIT License
+• "drugs" → Drug-related communications
+• "cash transfer" → Financial transactions  
+• "phone" → Contact tracking
 ```
 
-## 💡 Usage Examples
-
-### Direct Database Search
-Perform precise keyword searches across all evidence:
+### 🤖 AI Investigation
 ```
-🔍 Search Examples:
-• "drugs" → Find drug-related communications
-• "cash transfer" → Identify financial transactions  
-• "meeting location" → Locate planned meetups
-• "phone number" → Track specific contacts
+• "What suspicious activities are present?"
+• "Who are the main suspects?"
+• "What evidence needs immediate attention?"
 ```
 
-### AI Investigation Queries
-Ask sophisticated questions in natural language:
-```
-🤖 Example Queries:
-• "What are the main criminal activities detected in this case?"
-• "Who are the key suspects and their roles in the network?"
-• "What evidence supports money laundering charges?"
-• "Which communications indicate immediate threat to public safety?"
-• "What patterns suggest organized criminal activity?"
-```
+## � Security Features
 
-### Evidence Analysis Workflow
-```
-1. 📥 Ingest UFDR Data → Import all forensic evidence
-2. 🤖 AI Pre-Analysis → Generate comprehensive threat assessment  
-3. 🔍 Interactive Search → Explore specific evidence types
-4. 📊 Generate Reports → Create court-ready documentation
-```
-
-## 🔐 Security & Privacy
-
-- **API keys are never committed** - Protected by .gitignore
-- **Local processing** - Your forensic data stays on your machine
-- **Configurable AI** - Can work offline without AI features
-- **Clean separation** - Database and analysis files excluded from git
-
-## 🛠️ Development
-
-### Running Tests
-```bash
-python -m pytest tests/
-```
-
-### Code Quality
-```bash
-# Format code
-black .
-
-# Check types
-mypy .
-
-# Lint code
-flake8 .
-```
-
-### Contributing
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📊 Sample Dataset
-
-The included `fake_ufdr/` contains realistic forensic data for testing and demonstration:
-
-### 📱 Digital Communications
-- **320 text messages** including suspicious communications, financial discussions, and coded language
-- **120 call records** with timing patterns, duration analysis, and frequency mapping
-- **60 contacts** with names, phone numbers, and relationship indicators
-
-### 🖼️ Multimedia Evidence  
-- **30 sample images** for AI-powered visual analysis and content recognition
-- **Metadata extraction** capabilities for timestamps and device information
-- **Object detection** for weapons, drugs, cash, and other evidence
-
-### 🔍 Evidence Highlights
-```
-🚨 High-Risk Communications Detected:
-• Drug trafficking references: "20 grams of weed, need buyer"
-• Financial crimes: "transfer INR 50,000 in cash"  
-• Operational security: "do not bring your phone"
-• Suspicious meetings: "meet at the back entrance; keep low"
-```
+- **API keys protected** by .gitignore
+- **Local processing** - data stays on your machine
+- **Offline capable** - works without AI features
 
 ## 🎓 Smart India Hackathon 2025
 
-This project was developed for SIH 2025 Problem Statement: **Digital Forensics and AI-Powered Investigation Tools**
-
-### 🏆 Competition Details
-- **Category:** Software Development
-- **Problem Domain:** Cybersecurity & Digital Forensics  
-- **Solution Type:** AI-Powered Investigation Platform
-- **Technology Stack:** Python, Streamlit, Google Gemini AI, SQLModel
-
-### 🎯 Problem Statement Addressed
-Development of an intelligent system that can:
-- Process large volumes of digital forensic evidence efficiently
-- Provide AI-assisted analysis for faster case resolution
-- Support law enforcement with actionable intelligence
-- Maintain evidence integrity and chain of custody
-- Generate court-admissible reports and documentation
-
-### 💡 Innovation Highlights
-- **First-of-its-kind** integration of Google Gemini AI with forensic data processing
-- **Scalable architecture** supporting multiple evidence formats and sources  
-- **User-friendly interface** designed for non-technical law enforcement personnel
-- **Real-time analysis** capabilities for urgent investigations
+**Problem Statement:** Digital Forensics & AI-Powered Investigation Tools  
+**Tech Stack:** Python, Streamlit, Google Gemini AI, SQLModel
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🤝 Support
 
-- **Issues**: [GitHub Issues](https://github.com/LORDv1shnu/ufdr-analyzer-sih25/issues)
-- **Documentation**: Check the `/docs` folder for detailed guides
-- **API Reference**: See inline code documentation
-
-## 🚀 Deployment Options
-
-### Local Development
-```bash
-# Quick start for development
-streamlit run streamlit_app.py --server.port 8501
-```
-
-### Production Deployment
-```bash
-# Using Docker (production-ready)
-docker build -t ufdr-analyzer .
-docker run -p 8501:8501 ufdr-analyzer
-
-# Using Docker Compose (with database persistence)
-docker-compose up -d
-```
-
-### Cloud Deployment
-- **Streamlit Cloud**: Deploy directly from GitHub repository
-- **AWS EC2**: Deploy using provided CloudFormation templates
-- **Google Cloud Run**: Container-based deployment with auto-scaling
-- **Azure Container Instances**: Quick deployment for demonstration
-
-## 🔒 Security Considerations
-
-- **API Key Protection**: Never commit API keys to version control
-- **Data Encryption**: All sensitive data encrypted at rest and in transit
-- **Access Controls**: Role-based access for investigation teams  
-- **Audit Logging**: Complete audit trail of all user actions
-- **Evidence Integrity**: Cryptographic hashing to ensure evidence authenticity
-
-## 📞 Support & Documentation
-
-- **Issues**: [Report bugs or request features](https://github.com/LORDv1shnu/ufdr-analyzer-sih25/issues)
-- **Wiki**: [Comprehensive documentation](https://github.com/LORDv1shnu/ufdr-analyzer-sih25/wiki)
-- **API Docs**: Available at `/docs` when running locally
-- **Video Tutorials**: [YouTube Playlist](https://youtube.com/playlist?list=demo)
+- Issues: [GitHub Issues](https://github.com/LORDv1shnu/ufdr-analyzer-sih25/issues)
+- For bugs and feature requests
 
 ---
 
-## 🌟 Acknowledgments
-
-- **Google AI**: For providing Gemini API access and support
-- **Smart India Hackathon**: For the opportunity to solve real-world problems
-- **Law Enforcement Community**: For guidance on investigation workflows
-- **Open Source Community**: For the amazing tools and libraries used
-
-⭐ **Star this repository if you find it useful for digital forensics work!**
-
-**Made with ❤️ for Smart India Hackathon 2025 | Empowering Digital Justice**  
-
-**Professional Investigation Interface**: Web-based AI-powered forensic query system
-
-After pre-analysis, launch the interactive web interface:
-
-```bash
-python run_streamlit.py
-```
-
-### Key Features:
-- **Senior Investigation Officer AI**: Acts as an experienced forensic investigator
-- **Natural Language Queries**: Ask questions in plain English
-- **Evidence-Based Analysis**: References specific data from your forensic analysis
-- **Progress Tracking**: Real-time progress indicators during analysis
-- **Professional Reporting**: Structured investigation reports with threat assessments
-- **Sample Queries**: Pre-built investigation questions for common scenarios
-
-### Example Investigation Queries:
-- `"What are all the suspicious activities you could find?"`
-- `"Who are the main suspects in this case?"`
-- `"What evidence suggests criminal activity?"`
-- `"Are there any indicators of drug-related communications?"`
-- `"What are the most concerning findings that need immediate attention?"`
-- `"Who should be investigated first and why?"`
-- `"Are there any compromised law enforcement contacts?"`
-- `"What timeline patterns suggest coordinated criminal activity?"`
-
-## 📊 Command Line Query System (Alternative)
-
-For command-line users, the traditional query system:
-
-```bash
-python core_agent.py
-```
-
-Example queries:
-- `"show suspicious messages"`
-- `"messages from +919810000004"`
-- `"find calls with foreign numbers"`
-- `"recent activity"`
-
-## ⚠️ Important Notes
-
-- This is an MVP for demonstration purposes
-- Real UFDR files may have different formats
-- Always comply with legal requirements for forensic data analysis
-- Ensure proper data privacy and security measures in production
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## ⚠️ Requirements
-
-- **Gemini API Key**: Required for AI analysis
-- **Internet Connection**: For API calls
-- **Python 3.8+**: With required packages
-
-## 🔒 Security Notes
-
-- API key stored in local config file only
-- All processing done locally
-- Database stays on your machine
-- No data transmitted except to Google AI API
-
-## 🚀 Screenshots
-
-### AI Investigation Interface
-![AI Query Interface](https://via.placeholder.com/800x400/1f4e79/ffffff?text=AI+Investigation+Query+Interface)
-
-### Data Explorer
-![Data Explorer](https://via.placeholder.com/800x400/28a745/ffffff?text=Forensic+Data+Explorer)
-
-## 🏆 SIH 2025 Project
-
-This project was developed for **Smart India Hackathon 2025** focusing on advanced forensic data analysis capabilities.
-
-### Team Information
-- **Problem Statement**: Advanced UFDR Analysis System
-- **Category**: Software Development
-- **Technology Stack**: Python, Streamlit, AI/ML, SQLModel
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## ⚠️ Legal Notice
-
-This is a forensic analysis tool for law enforcement and authorized investigations only. Users must ensure compliance with applicable laws and regulations in their jurisdiction.
-
-## 📞 Support
-
-- 📧 Create an issue for bug reports
-- 💡 Feature requests are welcome
-- 📖 Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues
-
----
-
-**🎯 Smart India Hackathon 2025 | Advanced Forensic Data Analysis**
+**Made with ❤️ for Smart India Hackathon 2025**
