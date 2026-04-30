@@ -1,4 +1,4 @@
-AIzaSyBCT6DQEd3lPHC756cp_d2Ur3F3EPO7XEc
+[YOUR API KEY HERE]
 
 Instructions:
 1. Get your API key from: https://aistudio.google.com/app/apikey

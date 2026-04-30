@@ -2,6 +2,9 @@
 
 # Smart India Hackathon 2025 | UFDR AI Analyzer
 
+> ## ⚠️ Archived Project
+> This was a submission for Smart India Hackathon 2025. While not selected, the tool is functional with sample forensic data included. Development has stopped.
+
 ### **🏢 Ministry of Home Affairs (MHA) | Problem Statement `SIH25198`**
 
 **🔍 AI-based UFDR (Universal Forensic Extraction Device Report) Analysis Tool**
